@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Image,
   Pressable,
@@ -15,19 +15,37 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import HomeHeader from "../components/home/HomeHeader";
 import SideMenu from "../components/home/SideMenu";
 import { colors } from "../constants/theme";
-import { treatments } from "../data/treatments";
+import type { Treatment } from "../data/treatments";
+import { obtenerTratamientos } from "../services/api";
 
 export default function TreatmentsScreen() {
   const [search, setSearch] = useState("");
   const [menuVisible, setMenuVisible] = useState(false);
+  const [tratamientos, setTratamientos] = useState<Treatment[]>([]);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+  const cargarTratamientos = async () => {
+    try {
+      const datos = await obtenerTratamientos();
+      setTratamientos(datos);
+    } catch (error) {
+      console.error("Error cargando tratamientos:", error);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  cargarTratamientos();
+  }, []);
 
   const filteredTreatments = useMemo(() => {
-    return treatments.filter((treatment) =>
-      treatment.name.toLowerCase().includes(search.toLowerCase())
+    return tratamientos.filter((treatment) =>
+      treatment.nombre.toLowerCase().includes(search.toLowerCase())
     );
-  }, [search]);
+  }, [search, tratamientos]);
 
-  const handleSchedule = (treatmentId: string) => {
+  const handleSchedule = (treatmentId: number) => {
     router.push({
       pathname: "/appointment/create",
       params: {
@@ -100,7 +118,7 @@ export default function TreatmentsScreen() {
 
         <View style={styles.list}>
           {filteredTreatments.map((treatment) => (
-            <View key={treatment.id} style={styles.card}>
+            <View key={treatment.id_tratamiento} style={styles.card}>
               <View style={styles.cardTop}>
                 <View style={styles.iconContainer}>
                   <Ionicons
@@ -112,26 +130,26 @@ export default function TreatmentsScreen() {
 
                 <View style={styles.cardHeaderText}>
                   <Text style={styles.cardTitle}>
-                    {treatment.name}
+                    {treatment.nombre}
                   </Text>
 
                   <Text style={styles.duration}>
-                    {treatment.durationMin}–{treatment.durationMax} min
+                    {treatment.duracion} min
                   </Text>
                 </View>
 
                 <Text style={styles.price}>
-                  ${treatment.price}
+                  ${Number(treatment.precio).toFixed(2)}
                 </Text>
               </View>
 
               <Text style={styles.description}>
-                {treatment.description}
+                {treatment.descripcion}
               </Text>
 
               <Pressable
                 style={styles.button}
-                onPress={() => handleSchedule(treatment.id)}
+                onPress={() => handleSchedule(treatment.id_tratamiento)}
               >
                 <Text style={styles.buttonText}>
                   Agendar tratamiento
