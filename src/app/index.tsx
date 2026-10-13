@@ -1,4 +1,4 @@
-import { useState } from "react";
+/*import { useState } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -70,4 +70,10 @@ const styles = StyleSheet.create({
   bottomSpace: {
     height: 35,
   },
-});
+});*/
+
+import { Redirect } from "expo-router";
+
+export default function Index() {
+  return <Redirect href="/(auth)/login" />;
+}

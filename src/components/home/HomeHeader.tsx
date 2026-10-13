@@ -12,7 +12,7 @@ export default function HomeHeader({
   onMenuPress,
 }: HomeHeaderProps) {
   const handleHomePress = () => {
-    router.replace("/");
+    router.replace("../home");
   };
 
   const handleProfilePress = () => {
