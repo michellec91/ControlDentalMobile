@@ -1,8 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
 
 const tratamientosRoutes = require("./routes/tratamientos.routes");
+const usuariosRoutes = require("./routes/usuarios.routes");
 
 const app = express();
 
@@ -18,7 +19,7 @@ app.get("/", (req, res) => {
 
 // RUTAS
 app.use("/tratamientos", tratamientosRoutes);
-
+app.use("/usuarios", usuariosRoutes);
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
