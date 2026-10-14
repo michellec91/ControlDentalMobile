@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors } from "../../constants/theme";
+import { API_URL } from "../../services/api";
 
 export default function LoginScreen() {
   const [correo, setCorreo] = useState("");
@@ -44,7 +45,7 @@ export default function LoginScreen() {
 
     try {
       setCargando(true);
-      const response = await fetch("http://localhost:3001/usuarios/login", {
+      const response = await fetch(`${API_URL}/usuarios/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

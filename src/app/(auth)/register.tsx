@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors } from "../../constants/theme";
+import { API_URL } from "../../services/api";
 
 export default function RegisterScreen() {
   const [nombre, setNombre] = useState("");
@@ -59,7 +60,7 @@ export default function RegisterScreen() {
 
     try {
       setCargando(true);
-      const response = await fetch("http://localhost:3001/usuarios/register", {
+      const response = await fetch(`${API_URL}/usuarios/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
