@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import {
   Alert,
   Image,
@@ -17,6 +18,7 @@ import { colors } from "../../constants/theme";
 import { API_URL } from "../../services/api";
 
 export default function LoginScreen() {
+  const { login } = useAuth();
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -61,7 +63,8 @@ export default function LoginScreen() {
 
       setExito(`¡Bienvenido/a de nuevo, ${data.usuario.nombre}! Redirigiendo...`);
 
-      setTimeout(() => {
+      setTimeout(async () => {
+        await login(data.usuario);
         router.replace("/home");
       }, 1500);
     } catch (error: any) {
@@ -294,7 +297,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#E8F5E9",
     borderWidth: 1,
-    borderColor: "#Green",
+    borderColor: "#A5D6A7",
     borderRadius: 12,
     padding: 12,
     marginBottom: 16,

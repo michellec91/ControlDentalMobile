@@ -6,6 +6,7 @@
     "@expo/ngrok": "^4.1.0",
     "@expo/ui": "~57.0.22",
     "@expo/vector-icons": "^15.0.2",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^18.0.7",
