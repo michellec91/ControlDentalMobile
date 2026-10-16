@@ -4,6 +4,7 @@ const cors = require("cors");
 
 const tratamientosRoutes = require("./routes/tratamientos.routes");
 const usuariosRoutes = require("./routes/usuarios.routes");
+const citasRoutes = require("./routes/citas.routes");
 
 const app = express();
 
@@ -20,6 +21,8 @@ app.get("/", (req, res) => {
 // RUTAS
 app.use("/tratamientos", tratamientosRoutes);
 app.use("/usuarios", usuariosRoutes);
+app.use("/citas", citasRoutes);
+
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
