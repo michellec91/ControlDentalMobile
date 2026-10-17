@@ -2,10 +2,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useState } from 'react';
 
 type User = {
+    id_usuario?: number;
     id_user?: number;
-    name: string;
-    email: string;
+    nombre?: string;
+    apellido?: string;
+    telefono?: string;
+    correo?: string;
+    name?: string;
+    email?: string;
     rol?: string;
+    estado?: string;
 };
 
 type AuthContextType = {

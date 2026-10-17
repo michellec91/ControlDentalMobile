@@ -69,6 +69,7 @@ const loginUsuario = async (req, res) => {
         nombre: usuario.nombre,
         apellido: usuario.apellido,
         correo: usuario.correo,
+        telefono: usuario.telefono,
         rol: usuario.rol,
         estado: usuario.estado
       }
@@ -79,7 +80,73 @@ const loginUsuario = async (req, res) => {
   }
 };
 
+// --- ACTUALIZAR PERFIL DEL USUARIO ---
+const actualizarPerfil = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, apellido, correo, telefono } = req.body;
+
+    // Verificar que se hayan completado los campos obligatorios.
+    if (!nombre || !apellido || !correo || !telefono) {
+      return res.status(400).json({
+        error: "Por favor completa todos los campos obligatorios.",
+      });
+    }
+
+    // Comprobar que el usuario exista.
+    const [usuarios] = await db.query(
+      "SELECT id_usuario FROM usuarios WHERE id_usuario = ?",
+      [id]
+    );
+
+    if (usuarios.length === 0) {
+      return res.status(404).json({
+        error: "No se encontró el usuario.",
+      });
+    }
+
+    // Comprobar que el correo no pertenezca a otra cuenta.
+    const [correoExistente] = await db.query(
+      "SELECT id_usuario FROM usuarios WHERE correo = ? AND id_usuario != ?",
+      [correo, id]
+    );
+
+    if (correoExistente.length > 0) {
+      return res.status(400).json({
+        error: "El correo electrónico ya está registrado.",
+      });
+    }
+
+    // Guardar los cambios en la base de datos.
+    await db.query(
+      `UPDATE usuarios
+       SET nombre = ?, apellido = ?, correo = ?, telefono = ?
+       WHERE id_usuario = ?`,
+      [nombre, apellido, correo, telefono, id]
+    );
+
+    // Devolver los datos actualizados para la aplicación.
+    return res.status(200).json({
+      mensaje: "Perfil actualizado exitosamente.",
+      usuario: {
+        id_usuario: Number(id),
+        nombre,
+        apellido,
+        correo,
+        telefono,
+      },
+    });
+  } catch (error) {
+    console.error("Error al actualizar el perfil:", error);
+
+    return res.status(500).json({
+      error: "Error interno del servidor al actualizar el perfil.",
+    });
+  }
+};
+
 module.exports = {
   registrarUsuario,
-  loginUsuario
+  loginUsuario,
+  actualizarPerfil,
 };

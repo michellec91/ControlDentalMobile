@@ -5,6 +5,7 @@ const db = require("../config/db");
 const {
   registrarUsuario,
   loginUsuario,
+  actualizarPerfil,
 } = require("../controllers/usuarios.controller");
 
 // Consultar lista de usuarios desde MySQL
@@ -21,5 +22,8 @@ router.get("/", async (req, res) => {
 // Rutas de autenticación
 router.post("/register", registrarUsuario);
 router.post("/login", loginUsuario);
+
+// Actualizar los datos del perfil de un usuario
+router.put("/:id", actualizarPerfil);
 
 module.exports = router;
