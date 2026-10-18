@@ -166,28 +166,6 @@ export default function SideMenu({
                 />
               </Pressable>
 
-              <Pressable
-                style={styles.menuItem}
-                onPress={() => navigateTo("/contact")}
-              >
-                <View style={styles.menuIcon}>
-                  <Ionicons
-                    name="location-outline"
-                    size={22}
-                    color={colors.primary}
-                  />
-                </View>
-
-                <Text style={styles.menuText}>
-                  Contacto
-                </Text>
-
-                <Ionicons
-                  name="chevron-forward"
-                  size={19}
-                  color={colors.textSecondary}
-                />
-              </Pressable>
             </View>
 
             <View style={styles.logoutContainer}>
