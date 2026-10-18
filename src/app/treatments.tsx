@@ -25,31 +25,33 @@ export default function TreatmentsScreen() {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-  const cargarTratamientos = async () => {
-    try {
-      const datos = await obtenerTratamientos();
-      setTratamientos(datos);
-    } catch (error) {
-      console.error("Error cargando tratamientos:", error);
-    } finally {
-      setCargando(false);
-    }
-  };
+    const cargarTratamientos = async () => {
+      try {
+        const datos = await obtenerTratamientos();
+        setTratamientos(datos);
+      } catch (error) {
+        console.error("Error cargando tratamientos:", error);
+      } finally {
+        setCargando(false);
+      }
+    };
 
-  cargarTratamientos();
+    cargarTratamientos();
   }, []);
 
   const filteredTreatments = useMemo(() => {
     return tratamientos.filter((treatment) =>
-      treatment.nombre.toLowerCase().includes(search.toLowerCase())
+      treatment.nombre.toLowerCase().includes(search.toLowerCase()),
     );
   }, [search, tratamientos]);
 
-  const handleSchedule = (treatmentId: number) => {
+  const handleSchedule = (treatment: Treatment) => {
     router.push({
       pathname: "/appointment/create",
       params: {
-        treatmentId,
+        treatmentId: treatment.id_tratamiento,
+        id_tratamiento: treatment.id_tratamiento,
+        tratamiento: treatment.nombre,
       },
     });
   };
@@ -59,18 +61,13 @@ export default function TreatmentsScreen() {
       style={styles.safeArea}
       edges={["top", "left", "right", "bottom"]}
     >
-      <SideMenu
-        visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-      />
+      <SideMenu visible={menuVisible} onClose={() => setMenuVisible(false)} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
-        <HomeHeader
-          onMenuPress={() => setMenuVisible(true)}
-        />
+        <HomeHeader onMenuPress={() => setMenuVisible(true)} />
 
         <Image
           source={require("../../assets/images/treatments.jpg")}
@@ -81,9 +78,7 @@ export default function TreatmentsScreen() {
         <View style={styles.header}>
           <Text style={styles.eyebrow}>SERVICIOS</Text>
 
-          <Text style={styles.title}>
-            Nuestros tratamientos
-          </Text>
+          <Text style={styles.title}>Nuestros tratamientos</Text>
 
           <Text style={styles.subtitle}>
             Conocé las opciones disponibles y encontrá el tratamiento que
@@ -110,9 +105,7 @@ export default function TreatmentsScreen() {
         <View style={styles.resultsHeader}>
           <Text style={styles.resultsText}>
             {filteredTreatments.length}{" "}
-            {filteredTreatments.length === 1
-              ? "tratamiento"
-              : "tratamientos"}
+            {filteredTreatments.length === 1 ? "tratamiento" : "tratamientos"}
           </Text>
         </View>
 
@@ -129,13 +122,9 @@ export default function TreatmentsScreen() {
                 </View>
 
                 <View style={styles.cardHeaderText}>
-                  <Text style={styles.cardTitle}>
-                    {treatment.nombre}
-                  </Text>
+                  <Text style={styles.cardTitle}>{treatment.nombre}</Text>
 
-                  <Text style={styles.duration}>
-                    {treatment.duracion} min
-                  </Text>
+                  <Text style={styles.duration}>{treatment.duracion} min</Text>
                 </View>
 
                 <Text style={styles.price}>
@@ -143,23 +132,15 @@ export default function TreatmentsScreen() {
                 </Text>
               </View>
 
-              <Text style={styles.description}>
-                {treatment.descripcion}
-              </Text>
+              <Text style={styles.description}>{treatment.descripcion}</Text>
 
               <Pressable
                 style={styles.button}
-                onPress={() => handleSchedule(treatment.id_tratamiento)}
+                onPress={() => handleSchedule(treatment)}
               >
-                <Text style={styles.buttonText}>
-                  Agendar tratamiento
-                </Text>
+                <Text style={styles.buttonText}>Agendar tratamiento</Text>
 
-                <Ionicons
-                  name="arrow-forward"
-                  size={18}
-                  color={colors.white}
-                />
+                <Ionicons name="arrow-forward" size={18} color={colors.white} />
               </Pressable>
             </View>
           ))}

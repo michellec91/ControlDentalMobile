@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,6 +11,7 @@ import {
 
 export default function CreateAppointmentScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
 
   const hoyStr = new Date().toISOString().split("T")[0];
 
@@ -91,6 +92,7 @@ export default function CreateAppointmentScreen() {
 
   const cargarDatosIniciales = async () => {
     try {
+      // 1. Cargar usuario de sesión activa
       if (typeof window !== "undefined") {
         const sessionUser =
           localStorage.getItem("usuario") ||
@@ -106,17 +108,40 @@ export default function CreateAppointmentScreen() {
         }
       }
 
+      // 2. Cargar citas para validaciones
       const resCitas = await fetch(API_CITAS).catch(() => null);
       if (resCitas && resCitas.ok) {
         const dataCitas = await resCitas.json();
         setCitasExistentes(Array.isArray(dataCitas) ? dataCitas : []);
       }
 
+      // 3. Cargar tratamientos y preseleccionar el enviado desde treatments.tsx
       const resTratamientos = await fetch(API_TRATAMIENTOS).catch(() => null);
+      let lista = listaTratamientos;
       if (resTratamientos && resTratamientos.ok) {
-        const dataTratamientos = await resTratamientos.json();
-        const lista = Array.isArray(dataTratamientos) ? dataTratamientos : [];
-        if (lista.length > 0) setListaTratamientos(lista);
+        const dataTrat = await resTratamientos.json();
+        if (Array.isArray(dataTrat) && dataTrat.length > 0) {
+          lista = dataTrat;
+          setListaTratamientos(lista);
+        }
+      }
+
+      // Preseleccionar tratamiento recibido en params
+      const paramTratamiento =
+        params.treatmentId || params.id_tratamiento || params.tratamiento;
+      if (paramTratamiento && lista.length > 0) {
+        const encontrado = lista.find((t) => {
+          const nombreT = t.nombre || t.nombre_tratamiento || t.name;
+          const idT = t.id_tratamiento || t.id;
+          return (
+            String(idT) === String(paramTratamiento) ||
+            nombreT === paramTratamiento
+          );
+        });
+
+        if (encontrado) {
+          setTratamientoSeleccionado(encontrado);
+        }
       }
     } catch (err) {
       console.log("Error al cargar datos iniciales:", err);
@@ -366,7 +391,7 @@ export default function CreateAppointmentScreen() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "#F0F9FF", // Fondo celeste unificado
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 32,
