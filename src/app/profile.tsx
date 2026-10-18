@@ -1,9 +1,12 @@
 
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
+    Image,
     Modal,
     Platform,
     Pressable,
@@ -16,15 +19,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
+import { API_URL } from "../services/api";
 
 export default function ProfileScreen() {
-    // Obtener los datos del usuario y la función para cerrar sesión.
-    const { usuario, logout } = useAuth();
+    // Obtener los datos del usuario y las funciones de sesión.
+    const { usuario, logout, login } = useAuth();
 
-    // Controlar la visibilidad de la confirmación personalizada.
+    // Controlar el modal de cierre de sesión y la subida de la foto.
     const [modalLogoutVisible, setModalLogoutVisible] = useState(false);
+    const [subiendoFoto, setSubiendoFoto] = useState(false);
 
-    // Obtener el nombre completo y los datos de contacto.
+    // Obtener los datos personales del usuario.
     const nombreCompleto =
         [usuario?.nombre ?? usuario?.name, usuario?.apellido]
             .filter(Boolean)
@@ -32,6 +37,113 @@ export default function ProfileScreen() {
 
     const correo = usuario?.correo ?? usuario?.email ?? "No disponible";
     const telefono = usuario?.telefono || "No disponible";
+
+    // Construir la dirección de la foto guardada en el servidor.
+    const fotoPerfil = usuario?.imagen_perfil
+        ? `${API_URL}${usuario.imagen_perfil}`
+        : null;
+
+    // Seleccionar una imagen y subirla al backend.
+    const seleccionarFoto = async () => {
+        try {
+            const resultado =
+                await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ["images"],
+                    allowsEditing: true,
+                    aspect: [1, 1],
+                    quality: 0.8,
+                });
+
+            // Si se cancela el selector, no hacer nada.
+            if (resultado.canceled || !resultado.assets?.length) {
+                return;
+            }
+
+            const imagen = resultado.assets[0];
+            const idUsuario =
+                usuario?.id_usuario ?? usuario?.id_user;
+
+            if (!idUsuario) {
+                throw new Error(
+                    "No se encontró el identificador del usuario."
+                );
+            }
+
+            // Preparar el archivo para enviarlo al servidor.
+            const formulario = new FormData();
+
+            if (Platform.OS === "web") {
+                if (!imagen.file) {
+                    throw new Error(
+                        "No se pudo leer la imagen seleccionada. Inténtalo de nuevo."
+                    );
+                }
+
+                formulario.append("foto", imagen.file);
+            } else {
+                formulario.append(
+                    "foto",
+                    {
+                        uri: imagen.uri,
+                        name: imagen.fileName || "foto-perfil.jpg",
+                        type: imagen.mimeType || "image/jpeg",
+                    } as any
+                );
+            }
+
+            setSubiendoFoto(true);
+
+            // Enviar la imagen a la ruta que configuramos en el backend.
+            const respuesta = await fetch(
+                `${API_URL}/usuarios/${idUsuario}/foto-perfil`,
+                {
+                    method: "PUT",
+                    body: formulario,
+                }
+            );
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                throw new Error(
+                    datos.error || "No se pudo guardar la foto."
+                );
+            }
+
+            // Actualizar la sesión y conservar los demás datos del usuario.
+            await login({
+                ...usuario,
+                imagen_perfil: datos.imagen_perfil,
+            });
+
+            // Confirmar que la imagen se guardó.
+            if (Platform.OS === "web") {
+                window.alert(
+                    "¡Foto actualizada!\n\nTu foto de perfil se guardó correctamente."
+                );
+            } else {
+                Alert.alert(
+                    "¡Foto actualizada!",
+                    "Tu foto de perfil se guardó correctamente."
+                );
+            }
+        } catch (error) {
+            console.error("Error al actualizar la foto:", error);
+
+            const mensaje =
+                error instanceof Error
+                    ? error.message
+                    : "No se pudo actualizar la foto.";
+
+            if (Platform.OS === "web") {
+                window.alert(`Error\n\n${mensaje}`);
+            } else {
+                Alert.alert("Error", mensaje);
+            }
+        } finally {
+            setSubiendoFoto(false);
+        }
+    };
 
     // Regresar a la pantalla principal.
     const volverInicio = () => {
@@ -47,16 +159,11 @@ export default function ProfileScreen() {
     const confirmarCierreSesion = async () => {
         try {
             setModalLogoutVisible(false);
-
-            // Eliminar los datos de sesión guardados.
             await logout();
-
-            // Redirigir a la pantalla de inicio de sesión.
             router.replace("/(auth)/login");
         } catch (error) {
             console.error("Error al cerrar sesión:", error);
 
-            // Mostrar un mensaje compatible con web y móvil.
             if (Platform.OS === "web") {
                 window.alert(
                     "Error\n\nNo se pudo cerrar la sesión. Inténtalo nuevamente."
@@ -76,7 +183,7 @@ export default function ProfileScreen() {
                 contentContainerStyle={styles.content}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Barra superior con el botón para regresar al inicio. */}
+                {/* Barra superior. */}
                 <View style={styles.topBar}>
                     <Pressable
                         onPress={volverInicio}
@@ -95,13 +202,50 @@ export default function ProfileScreen() {
                     </Text>
                 </View>
 
-                {/* Icono del perfil del usuario. */}
+                {/* Foto de perfil con opción para cambiarla. */}
                 <View style={styles.avatar}>
-                    <Ionicons
-                        name="person-circle-outline"
-                        size={58}
-                        color={colors.primary}
-                    />
+                    <Pressable
+                        onPress={seleccionarFoto}
+                        disabled={subiendoFoto}
+                        accessibilityRole="button"
+                        accessibilityLabel="Cambiar foto de perfil"
+                        style={styles.avatarButton}
+                    >
+                        {fotoPerfil ? (
+                            <Image
+                                source={{ uri: fotoPerfil }}
+                                style={styles.avatarImage}
+                                resizeMode="cover"
+                            />
+                        ) : (
+                            <Ionicons
+                                name="person-circle-outline"
+                                size={86}
+                                color={colors.primary}
+                            />
+                        )}
+
+                        <View style={styles.cameraBadge}>
+                            <Ionicons
+                                name="camera"
+                                size={16}
+                                color={colors.white}
+                            />
+                        </View>
+                    </Pressable>
+
+                    {subiendoFoto ? (
+                        <View style={styles.uploadStatus}>
+                            <ActivityIndicator color={colors.primary} />
+                            <Text style={styles.changePhotoText}>
+                                Guardando foto...
+                            </Text>
+                        </View>
+                    ) : (
+                        <Text style={styles.changePhotoText}>
+                            Cambiar foto
+                        </Text>
+                    )}
                 </View>
 
                 {/* Información personal del usuario. */}
@@ -133,7 +277,7 @@ export default function ProfileScreen() {
                         </Text>
                     </View>
 
-                    {/* Abrir el formulario para editar los datos personales. */}
+                    {/* Abrir el formulario de edición del perfil. */}
                     <Pressable
                         style={styles.outlineButton}
                         onPress={() => router.push("/edit-profile")}
@@ -169,7 +313,6 @@ export default function ProfileScreen() {
                         </Text>
                     </View>
 
-                    {/* Abrir la pantalla para cambiar la contraseña. */}
                     <Pressable
                         style={styles.outlineButton}
                         onPress={() => router.push("/change-password")}
@@ -185,7 +328,7 @@ export default function ProfileScreen() {
                     </Pressable>
                 </View>
 
-                {/* Botón que abre la confirmación personalizada. */}
+                {/* Botón para cerrar sesión. */}
                 <Pressable
                     style={styles.logoutButton}
                     onPress={cerrarSesion}
@@ -201,7 +344,7 @@ export default function ProfileScreen() {
                 </Pressable>
             </ScrollView>
 
-            {/* Confirmación personalizada para web, Android e iOS. */}
+            {/* Confirmación personalizada para cerrar sesión. */}
             <Modal
                 visible={modalLogoutVisible}
                 transparent
@@ -210,7 +353,6 @@ export default function ProfileScreen() {
             >
                 <View style={styles.confirmOverlay}>
                     <View style={styles.confirmBox}>
-                        {/* Icono de cierre de sesión. */}
                         <View style={styles.confirmIconContainer}>
                             <Ionicons
                                 name="log-out-outline"
@@ -228,7 +370,6 @@ export default function ProfileScreen() {
                             para acceder.
                         </Text>
 
-                        {/* Botones para cancelar o confirmar el cierre. */}
                         <View style={styles.confirmButtonsRow}>
                             <Pressable
                                 style={[
@@ -263,7 +404,7 @@ export default function ProfileScreen() {
     );
 }
 
-// Estilos de la pantalla de perfil y de su confirmación.
+// Estilos de la pantalla y de los modales.
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
@@ -296,6 +437,44 @@ const styles = StyleSheet.create({
     avatar: {
         alignItems: "center",
         marginBottom: 18,
+    },
+    avatarButton: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+    },
+    avatarImage: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        borderWidth: 2,
+        borderColor: colors.primary,
+    },
+    cameraBadge: {
+        position: "absolute",
+        right: 0,
+        bottom: 0,
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        backgroundColor: colors.primary,
+        alignItems: "center",
+        justifyContent: "center",
+        borderWidth: 2,
+        borderColor: colors.surface,
+    },
+    uploadStatus: {
+        alignItems: "center",
+        marginTop: 8,
+        gap: 5,
+    },
+    changePhotoText: {
+        marginTop: 8,
+        fontSize: 12,
+        color: colors.textSecondary,
     },
     card: {
         backgroundColor: colors.surface,
@@ -370,8 +549,6 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: "700",
     },
-
-    // Fondo oscuro que cubre la pantalla detrás de la confirmación.
     confirmOverlay: {
         flex: 1,
         backgroundColor: "rgba(0, 0, 0, 0.5)",

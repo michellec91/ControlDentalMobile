@@ -71,7 +71,8 @@ const loginUsuario = async (req, res) => {
         correo: usuario.correo,
         telefono: usuario.telefono,
         rol: usuario.rol,
-        estado: usuario.estado
+        estado: usuario.estado,
+        imagen_perfil: usuario.imagen_perfil || null
       }
     });
   } catch (error) {
