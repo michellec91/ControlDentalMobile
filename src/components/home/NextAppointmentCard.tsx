@@ -16,6 +16,7 @@ export default function NextAppointmentCard({
     tratamiento,
     onPress,
 }: Props) {
+    // Formateamos la fecha para mostrarla en español.
     const fechaFormateada = new Date(
         `${fecha.split("T")[0]}T12:00:00`
     ).toLocaleDateString("es-SV", {
@@ -24,6 +25,7 @@ export default function NextAppointmentCard({
         year: "numeric",
     });
 
+    // Convertimos la hora de formato 24 horas a formato de 12 horas.
     const [horas, minutos] = hora.split(":");
     const horaFormateada = `${Number(horas) % 12 || 12}:${minutos} ${Number(horas) >= 12 ? "p. m." : "a. m."
         }`;
@@ -44,8 +46,8 @@ export default function NextAppointmentCard({
                 <View style={styles.header}>
                     <View style={styles.icon}>
                         <Ionicons
-                            name="calendar-outline"
-                            size={22}
+                            name="medical"
+                            size={23}
                             color={colors.primary}
                         />
                     </View>
@@ -57,32 +59,32 @@ export default function NextAppointmentCard({
 
                     <Ionicons
                         name="chevron-forward"
-                        size={22}
+                        size={23}
                         color={colors.primary}
                     />
                 </View>
 
                 <View style={styles.divider} />
 
+                {/* Icono de fecha igual al de Horarios de atención. */}
                 <View style={styles.detailRow}>
                     <Ionicons
-                        name="calendar-clear-outline"
-                        size={18}
+                        name="calendar-outline"
+                        size={21}
                         color={colors.primary}
                     />
                     <Text style={styles.detail}>{fechaFormateada}</Text>
                 </View>
 
+                {/* Icono de hora igual al de Horarios de atención. */}
                 <View style={styles.detailRow}>
                     <Ionicons
                         name="time-outline"
-                        size={18}
+                        size={21}
                         color={colors.primary}
                     />
                     <Text style={styles.detail}>{horaFormateada}</Text>
                 </View>
-
-                <Text style={styles.action}>Ver mis citas</Text>
             </Pressable>
         </View>
     );
@@ -149,11 +151,5 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: colors.text,
         flexShrink: 1,
-    },
-    action: {
-        fontSize: 14,
-        fontWeight: "700",
-        color: colors.primary,
-        marginTop: 6,
     },
 });
