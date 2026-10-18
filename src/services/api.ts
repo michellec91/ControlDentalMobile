@@ -15,3 +15,16 @@ export async function obtenerTratamientos() {
 
   return response.json();
 }
+
+// Obtiene las citas del usuario que inició sesión.
+export async function obtenerCitasPorUsuario(idUsuario: number) {
+  const response = await fetch(
+    `${API_URL}/citas?id_usuario=${idUsuario}`
+  );
+
+  if (!response.ok) {
+    throw new Error("No se pudieron obtener las citas");
+  }
+
+  return response.json();
+}

@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
 import {
   Alert,
   Image,
@@ -13,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../../context/AuthContext";
 
 import { colors } from "../../constants/theme";
 import { API_URL } from "../../services/api";

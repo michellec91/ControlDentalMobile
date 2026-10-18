@@ -1,11 +1,24 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createContext, useContext, useEffect, useState } from 'react';
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+    createContext,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 
 type User = {
+    id_usuario?: number;
     id_user?: number;
-    name: string;
-    email: string;
+    nombre?: string;
+    apellido?: string;
+    telefono?: string;
+    correo?: string;
+    name?: string;
+    email?: string;
     rol?: string;
+    estado?: string;
+    imagen_perfil?: string | null;
 };
 
 type AuthContextType = {
@@ -15,21 +28,33 @@ type AuthContextType = {
     logout: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+const AuthContext = createContext<AuthContextType>(
+    {} as AuthContextType
+);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
     const [usuario, setUser] = useState<User | null>(null);
     const [cargandoSesion, setCargandoSesion] = useState(true);
 
+    // Recuperar los datos guardados al abrir la aplicación.
     useEffect(() => {
         const cargarSesion = async () => {
             try {
-                const usuarioGuardado = await AsyncStorage.getItem('usuario');
+                const usuarioGuardado =
+                    await AsyncStorage.getItem("usuario");
+
                 if (usuarioGuardado) {
                     setUser(JSON.parse(usuarioGuardado));
                 }
             } catch (error) {
-                console.error('Error al cargar la sesión:', error);
+                console.error(
+                    "Error al cargar la sesión:",
+                    error
+                );
             } finally {
                 setCargandoSesion(false);
             }
@@ -38,26 +63,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         cargarSesion();
     }, []);
 
+    // Guardar los datos del usuario al iniciar sesión
+    // o cuando se actualicen, incluida la foto de perfil.
     const login = async (userData: User) => {
         try {
             setUser(userData);
-            await AsyncStorage.setItem('usuario', JSON.stringify(userData));
-        } catch (e) {
-            console.error('Error al guardar la sesión:', e);
-        }
-    }
 
+            await AsyncStorage.setItem(
+                "usuario",
+                JSON.stringify(userData)
+            );
+        } catch (error) {
+            console.error(
+                "Error al guardar la sesión:",
+                error
+            );
+
+            throw error;
+        }
+    };
+
+    // Eliminar los datos guardados al cerrar sesión.
     const logout = async () => {
         try {
             setUser(null);
-            await AsyncStorage.removeItem('usuario');
-        } catch (e) {
-            console.error("Error al cerrar la sesión", e);
+            await AsyncStorage.removeItem("usuario");
+        } catch (error) {
+            console.error(
+                "Error al cerrar la sesión:",
+                error
+            );
+
+            throw error;
         }
-    }
+    };
 
     return (
-        <AuthContext.Provider value={{ usuario, cargandoSesion, login, logout }}>
+        <AuthContext.Provider
+            value={{
+                usuario,
+                cargandoSesion,
+                login,
+                logout,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );
