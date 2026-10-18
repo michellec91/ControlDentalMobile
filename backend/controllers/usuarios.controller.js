@@ -145,8 +145,80 @@ const actualizarPerfil = async (req, res) => {
   }
 };
 
+
+/**
+ * Cambiar la contraseña de un usuario.
+ * Verifica la contraseña actual y guarda la nueva utilizando bcrypt.
+ */
+const cambiarContrasena = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { contrasenaActual, contrasenaNueva } = req.body;
+
+    // Comprobar que se hayan enviado los datos necesarios.
+    if (!contrasenaActual || !contrasenaNueva) {
+      return res.status(400).json({
+        error: "Completa todos los campos obligatorios.",
+      });
+    }
+
+    // Exigir una contraseña nueva de al menos 8 caracteres.
+    if (contrasenaNueva.length < 8) {
+      return res.status(400).json({
+        error: "La nueva contraseña debe tener al menos 8 caracteres.",
+      });
+    }
+
+    // Buscar la contraseña almacenada para este usuario.
+    const [usuarios] = await db.query(
+      "SELECT id_usuario, password FROM usuarios WHERE id_usuario = ?",
+      [id]
+    );
+
+    if (usuarios.length === 0) {
+      return res.status(404).json({
+        error: "No se encontró el usuario.",
+      });
+    }
+
+    const usuario = usuarios[0];
+
+    // Comprobar la contraseña actual comparándola con su hash.
+    const contrasenaCorrecta = await bcrypt.compare(
+      contrasenaActual,
+      usuario.password
+    );
+
+    if (!contrasenaCorrecta) {
+      return res.status(401).json({
+        error: "La contraseña actual es incorrecta.",
+      });
+    }
+
+    // Generar un hash para no almacenar la contraseña nueva en texto plano.
+    const nuevoHash = await bcrypt.hash(contrasenaNueva, 10);
+
+    // Guardar el nuevo hash en la base de datos.
+    await db.query(
+      "UPDATE usuarios SET password = ? WHERE id_usuario = ?",
+      [nuevoHash, id]
+    );
+
+    return res.status(200).json({
+      mensaje: "La contraseña se actualizó correctamente.",
+    });
+  } catch (error) {
+    console.error("Error al cambiar la contraseña:", error);
+
+    return res.status(500).json({
+      error: "Error interno del servidor al cambiar la contraseña.",
+    });
+  }
+};
+
 module.exports = {
   registrarUsuario,
   loginUsuario,
   actualizarPerfil,
+  cambiarContrasena,
 };

@@ -6,6 +6,7 @@ const {
   registrarUsuario,
   loginUsuario,
   actualizarPerfil,
+  cambiarContrasena,
 } = require("../controllers/usuarios.controller");
 
 // Consultar lista de usuarios desde MySQL
@@ -25,5 +26,8 @@ router.post("/login", loginUsuario);
 
 // Actualizar los datos del perfil de un usuario
 router.put("/:id", actualizarPerfil);
+
+// Ruta para cambiar la contraseña de un usuario.
+router.put("/:id/change-password", cambiarContrasena);
 
 module.exports = router;

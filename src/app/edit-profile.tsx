@@ -3,8 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    Alert,
-    Platform,
+    Modal,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -18,18 +17,29 @@ import { colors } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
 import { API_URL } from "../services/api";
 
+// Tipos de mensajes del modal personalizado.
+type MensajeModal = {
+    titulo: string;
+    mensaje: string;
+    tipo: "exito" | "error" | "advertencia";
+    alAceptar?: () => void;
+};
+
 export default function EditProfileScreen() {
-    // Obtener los datos del usuario y la función para actualizar su sesión.
     const { usuario, login } = useAuth();
 
-    // Guardar los valores que el usuario escribe en el formulario.
+    // Datos del formulario.
     const [nombre, setNombre] = useState("");
     const [apellido, setApellido] = useState("");
     const [correo, setCorreo] = useState("");
     const [telefono, setTelefono] = useState("");
     const [guardando, setGuardando] = useState(false);
 
-    // Cargar los datos actuales cuando la información de la sesión esté disponible.
+    // Control del modal de mensajes.
+    const [mensajeModal, setMensajeModal] =
+        useState<MensajeModal | null>(null);
+
+    // Cargar los datos originales del usuario.
     useEffect(() => {
         if (!usuario) return;
 
@@ -39,37 +49,35 @@ export default function EditProfileScreen() {
         setTelefono(usuario.telefono ?? "");
     }, [usuario]);
 
-    // Regresar a la pantalla del perfil.
+    // Volver a la pantalla de perfil.
     const volverPerfil = () => {
         router.replace("/profile");
     };
 
-    // Mostrar mensajes de forma compatible con web y dispositivos móviles.
-    const mostrarMensaje = (
+    // Mostrar un mensaje en la ventana personalizada.
+    const abrirMensajePersonalizado = (
         titulo: string,
         mensaje: string,
+        tipo: MensajeModal["tipo"] = "advertencia",
         alAceptar?: () => void
     ) => {
-        if (Platform.OS === "web") {
-            // En el navegador se utiliza la ventana de alerta web.
-            window.alert(`${titulo}\n\n${mensaje}`);
-
-            // Ejecutar la acción después de cerrar el mensaje, si existe.
-            alAceptar?.();
-        } else {
-            // En Android e iOS se utiliza la alerta de React Native.
-            Alert.alert(titulo, mensaje, [
-                {
-                    text: "Aceptar",
-                    onPress: alAceptar,
-                },
-            ]);
-        }
+        setMensajeModal({
+            titulo,
+            mensaje,
+            tipo,
+            alAceptar,
+        });
     };
 
-    // Validar los datos y enviarlos al backend para guardar los cambios.
+    // Cerrar el modal y ejecutar la acción correspondiente.
+    const aceptarMensaje = () => {
+        const accion = mensajeModal?.alAceptar;
+        setMensajeModal(null);
+        accion?.();
+    };
+
+    // Validar los datos y guardar los cambios.
     const guardarCambios = async () => {
-        // Eliminar espacios innecesarios al inicio y al final.
         const nombreLimpio = nombre.trim();
         const apellidoLimpio = apellido.trim();
         const correoLimpio = correo.trim();
@@ -82,41 +90,93 @@ export default function EditProfileScreen() {
             !correoLimpio ||
             !telefonoLimpio
         ) {
-            mostrarMensaje(
+            abrirMensajePersonalizado(
                 "Campos incompletos",
-                "Completa todos los campos antes de continuar."
+                "Completa todos los campos antes de continuar.",
+                "advertencia"
             );
             return;
         }
 
-        // Comprobar que el correo tenga un formato válido.
-        const correoValido =
-            /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correoLimpio);
+        // Permitir letras, tildes, ñ y espacios en nombres y apellidos.
+        const patronNombre = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/;
 
-        if (!correoValido) {
-            mostrarMensaje(
+        if (!patronNombre.test(nombreLimpio)) {
+            abrirMensajePersonalizado(
+                "Nombre inválido",
+                "El nombre solo puede contener letras y espacios.",
+                "advertencia"
+            );
+            return;
+        }
+
+        if (!patronNombre.test(apellidoLimpio)) {
+            abrirMensajePersonalizado(
+                "Apellido inválido",
+                "El apellido solo puede contener letras y espacios.",
+                "advertencia"
+            );
+            return;
+        }
+
+        // Validar el formato del correo electrónico.
+        const patronCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!patronCorreo.test(correoLimpio)) {
+            abrirMensajePersonalizado(
                 "Correo inválido",
-                "Ingresa un correo electrónico válido."
+                "Ingresa un correo electrónico válido. Ejemplo: usuario@gmail.com",
+                "advertencia"
             );
             return;
         }
 
-        // Obtener el identificador del usuario que inició sesión.
+        // Aceptar teléfonos internacionales con o sin prefijo +.
+        const patronTelefono = /^\+?\d{8,15}$/;
+
+        if (!patronTelefono.test(telefonoLimpio)) {
+            abrirMensajePersonalizado(
+                "Teléfono inválido",
+                "Ingresa un número de teléfono válido con entre 8 y 15 dígitos. Puedes incluir el prefijo internacional +.",
+                "advertencia"
+            );
+            return;
+        }
+
+        // Comprobar si los datos son iguales a los originales.
+        const datosSinCambios =
+            nombreLimpio ===
+            (usuario?.nombre ?? usuario?.name ?? "").trim() &&
+            apellidoLimpio === (usuario?.apellido ?? "").trim() &&
+            correoLimpio ===
+            (usuario?.correo ?? usuario?.email ?? "").trim() &&
+            telefonoLimpio === (usuario?.telefono ?? "").trim();
+
+        if (datosSinCambios) {
+            abrirMensajePersonalizado(
+                "No hay cambios",
+                "No modificaste ningún dato de tu perfil.",
+                "advertencia"
+            );
+            return;
+        }
+
+        // Obtener el identificador del usuario.
         const idUsuario = usuario?.id_usuario ?? usuario?.id_user;
 
         if (!idUsuario) {
-            mostrarMensaje(
+            abrirMensajePersonalizado(
                 "Error",
-                "No se encontró el ID del usuario. Cierra sesión e inicia sesión nuevamente."
+                "No se encontró el ID del usuario. Cierra sesión e inicia sesión nuevamente.",
+                "error"
             );
             return;
         }
 
         try {
-            // Desactivar temporalmente el botón mientras se guarda.
             setGuardando(true);
 
-            // Enviar los datos nuevos al backend para actualizar MySQL.
+            // Enviar los datos actualizados al backend.
             const respuesta = await fetch(
                 `${API_URL}/usuarios/${idUsuario}`,
                 {
@@ -133,10 +193,9 @@ export default function EditProfileScreen() {
                 }
             );
 
-            // Leer la respuesta enviada por el servidor.
+            // Leer la respuesta del servidor.
             const datos = await respuesta.json();
 
-            // Informar si el servidor no pudo actualizar los datos.
             if (!respuesta.ok) {
                 throw new Error(
                     datos.error ||
@@ -145,32 +204,51 @@ export default function EditProfileScreen() {
                 );
             }
 
-            // Actualizar la sesión para que la aplicación utilice los datos nuevos.
+            // Actualizar los datos de la sesión.
             await login({
                 ...usuario,
                 ...datos.usuario,
                 id_usuario: idUsuario,
             });
 
-            // Confirmar el guardado y regresar al perfil al cerrar el mensaje.
-            mostrarMensaje(
+            // Confirmar que se guardaron los cambios.
+            abrirMensajePersonalizado(
                 "¡Perfil actualizado!",
                 "Tus datos se guardaron correctamente.",
+                "exito",
                 volverPerfil
             );
         } catch (error) {
-            // Mostrar el error que ocurrió durante el guardado.
             const mensaje =
                 error instanceof Error
                     ? error.message
                     : "Ocurrió un error al guardar los cambios.";
 
-            mostrarMensaje("Error", mensaje);
+            abrirMensajePersonalizado(
+                "No se pudo actualizar",
+                mensaje,
+                "error"
+            );
         } finally {
-            // Habilitar nuevamente el botón.
             setGuardando(false);
         }
     };
+
+    // Definir el icono y color del modal.
+    const esExito = mensajeModal?.tipo === "exito";
+    const esError = mensajeModal?.tipo === "error";
+
+    const colorIcono = esExito
+        ? "#238636"
+        : esError
+            ? "#D9534F"
+            : colors.primary;
+
+    const icono = esExito
+        ? "checkmark-circle-outline"
+        : esError
+            ? "alert-circle-outline"
+            : "information-circle-outline";
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -192,14 +270,12 @@ export default function EditProfileScreen() {
                     <Text style={styles.backText}>Volver</Text>
                 </Pressable>
 
-                {/* Título y descripción de la pantalla. */}
                 <Text style={styles.title}>Editar perfil</Text>
-
                 <Text style={styles.subtitle}>
                     Actualiza tu información personal.
                 </Text>
 
-                {/* Formulario con los datos personales del usuario. */}
+                {/* Formulario de información personal. */}
                 <View style={styles.card}>
                     <Text style={styles.label}>Nombre</Text>
                     <TextInput
@@ -207,7 +283,14 @@ export default function EditProfileScreen() {
                         placeholder="Ingresa tu nombre"
                         placeholderTextColor={colors.textSecondary}
                         value={nombre}
-                        onChangeText={setNombre}
+                        onChangeText={(texto) =>
+                            setNombre(
+                                texto.replace(
+                                    /[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g,
+                                    ""
+                                )
+                            )
+                        }
                         autoCapitalize="words"
                     />
 
@@ -217,7 +300,14 @@ export default function EditProfileScreen() {
                         placeholder="Ingresa tu apellido"
                         placeholderTextColor={colors.textSecondary}
                         value={apellido}
-                        onChangeText={setApellido}
+                        onChangeText={(texto) =>
+                            setApellido(
+                                texto.replace(
+                                    /[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g,
+                                    ""
+                                )
+                            )
+                        }
                         autoCapitalize="words"
                     />
 
@@ -236,14 +326,23 @@ export default function EditProfileScreen() {
                     <Text style={styles.label}>Teléfono</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Ingresa tu teléfono"
+                        placeholder="Ej. 77036701 o +14155552671"
                         placeholderTextColor={colors.textSecondary}
                         value={telefono}
-                        onChangeText={setTelefono}
+                        onChangeText={(texto) => {
+                            // Permitir números y un + únicamente al inicio.
+                            const limpio = texto.replace(/[^\d+]/g, "");
+                            const normalizado = limpio.startsWith("+")
+                                ? "+" +
+                                limpio.slice(1).replace(/\+/g, "")
+                                : limpio.replace(/\+/g, "");
+
+                            setTelefono(normalizado);
+                        }}
                         keyboardType="phone-pad"
                     />
 
-                    {/* Guardar los cambios y evitar pulsaciones repetidas. */}
+                    {/* Botón para guardar los cambios. */}
                     <Pressable
                         style={[
                             styles.button,
@@ -260,11 +359,59 @@ export default function EditProfileScreen() {
                     </Pressable>
                 </View>
             </ScrollView>
+
+            {/* Modal personalizado para avisos, errores y confirmaciones. */}
+            <Modal
+                visible={mensajeModal !== null}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setMensajeModal(null)}
+            >
+                <View style={styles.confirmOverlay}>
+                    <View style={styles.confirmBox}>
+                        <View
+                            style={[
+                                styles.confirmIconContainer,
+                                {
+                                    backgroundColor: esExito
+                                        ? "#E8F5E9"
+                                        : esError
+                                            ? "#FDECEA"
+                                            : colors.primaryLight,
+                                },
+                            ]}
+                        >
+                            <Ionicons
+                                name={icono}
+                                size={30}
+                                color={colorIcono}
+                            />
+                        </View>
+
+                        <Text style={styles.confirmTitle}>
+                            {mensajeModal?.titulo}
+                        </Text>
+
+                        <Text style={styles.confirmSubtitle}>
+                            {mensajeModal?.mensaje}
+                        </Text>
+
+                        <Pressable
+                            style={styles.confirmButton}
+                            onPress={aceptarMensaje}
+                        >
+                            <Text style={styles.confirmButtonText}>
+                                Aceptar
+                            </Text>
+                        </Pressable>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
 
-// Estilos visuales de la pantalla de edición.
+// Estilos de la pantalla y del modal.
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
@@ -332,5 +479,60 @@ const styles = StyleSheet.create({
     buttonText: {
         color: colors.white,
         fontWeight: "700",
+    },
+    confirmOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 24,
+    },
+    confirmBox: {
+        width: "100%",
+        maxWidth: 320,
+        backgroundColor: colors.white,
+        borderRadius: 20,
+        padding: 24,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    confirmIconContainer: {
+        width: 60,
+        height: 60,
+        borderRadius: 20,
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 16,
+    },
+    confirmTitle: {
+        fontSize: 18,
+        fontWeight: "700",
+        color: colors.text,
+        textAlign: "center",
+        marginBottom: 8,
+    },
+    confirmSubtitle: {
+        fontSize: 13,
+        color: colors.textSecondary,
+        textAlign: "center",
+        lineHeight: 18,
+        marginBottom: 22,
+    },
+    confirmButton: {
+        width: "100%",
+        backgroundColor: colors.primary,
+        paddingVertical: 13,
+        borderRadius: 12,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    confirmButtonText: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: colors.white,
     },
 });
