@@ -6,25 +6,65 @@ export const API_URL =
     ? "http://10.0.2.2:3001"
     : "http://localhost:3001");
 
+// -----------------------------------------
+// TRATAMIENTOS
+// -----------------------------------------
 export async function obtenerTratamientos() {
-  const response = await fetch(`${API_URL}/tratamientos`);
+  const response = await fetch(
+    `${API_URL}/tratamientos`
+  );
+
+  const data = await response.json();
 
   if (!response.ok) {
-    throw new Error("No se pudieron obtener los tratamientos");
+    throw new Error(
+      data.error ||
+        "No se pudieron obtener los tratamientos"
+    );
   }
 
-  return response.json();
+  return data;
 }
 
-// Obtiene las citas del usuario que inició sesión.
-export async function obtenerCitasPorUsuario(idUsuario: number) {
+// -----------------------------------------
+// CITAS DEL USUARIO
+// -----------------------------------------
+export async function obtenerCitasPorUsuario(
+  idUsuario: number
+) {
   const response = await fetch(
     `${API_URL}/citas?id_usuario=${idUsuario}`
   );
 
+  const data = await response.json();
+
   if (!response.ok) {
-    throw new Error("No se pudieron obtener las citas");
+    throw new Error(
+      data.error ||
+        "No se pudieron obtener las citas"
+    );
   }
 
-  return response.json();
+  return data;
+}
+
+// -----------------------------------------
+// HORARIOS
+// -----------------------------------------
+export async function obtenerHorarios() {
+  const response = await fetch(
+    `${API_URL}/horarios`
+  );
+
+  const data =
+    await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data.error ||
+        "No se pudieron obtener los horarios"
+    );
+  }
+
+  return data;
 }

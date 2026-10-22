@@ -1,5 +1,5 @@
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
     createContext,
     useContext,
@@ -7,109 +7,247 @@ import {
     useState,
 } from "react";
 
-type User = {
-    id_usuario?: number;
-    id_user?: number;
-    nombre?: string;
-    apellido?: string;
-    telefono?: string;
-    correo?: string;
-    name?: string;
-    email?: string;
-    rol?: string;
-    estado?: string;
-    imagen_perfil?: string | null;
+export type User = {
+  id_usuario: number;
+  nombre: string;
+  apellido?: string;
+  correo: string;
+  telefono?: string;
+  rol: string;
+  estado: string;
+  imagen_perfil?: string | null;
 };
 
 type AuthContextType = {
-    usuario: User | null;
-    cargandoSesion: boolean;
-    login: (userData: User) => Promise<void>;
-    logout: () => Promise<void>;
+  usuario: User | null;
+  cargandoSesion: boolean;
+
+  login: (
+    userData: User
+  ) => Promise<void>;
+
+  actualizarUsuario: (
+    userData: Partial<User>
+  ) => Promise<void>;
+
+  logout: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextType>(
-    {} as AuthContextType
-);
+const AuthContext =
+  createContext<AuthContextType | null>(
+    null
+  );
 
 export function AuthProvider({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    const [usuario, setUser] = useState<User | null>(null);
-    const [cargandoSesion, setCargandoSesion] = useState(true);
+  const [
+    usuario,
+    setUsuario,
+  ] =
+    useState<User | null>(
+      null
+    );
 
-    // Recuperar los datos guardados al abrir la aplicación.
-    useEffect(() => {
-        const cargarSesion = async () => {
-            try {
-                const usuarioGuardado =
-                    await AsyncStorage.getItem("usuario");
+  const [
+    cargandoSesion,
+    setCargandoSesion,
+  ] =
+    useState(true);
 
-                if (usuarioGuardado) {
-                    setUser(JSON.parse(usuarioGuardado));
-                }
-            } catch (error) {
-                console.error(
-                    "Error al cargar la sesión:",
-                    error
-                );
-            } finally {
-                setCargandoSesion(false);
-            }
+  // -----------------------------------------
+  // CARGAR SESIÓN GUARDADA
+  // -----------------------------------------
+  useEffect(() => {
+    const cargarSesion =
+      async () => {
+        try {
+          const usuarioGuardado =
+            await AsyncStorage.getItem(
+              "usuario"
+            );
+
+          if (
+            usuarioGuardado
+          ) {
+            const usuarioParseado =
+              JSON.parse(
+                usuarioGuardado
+              );
+
+            setUsuario(
+              usuarioParseado
+            );
+          }
+        } catch (error) {
+          console.error(
+            "Error al cargar la sesión:",
+            error
+          );
+
+          await AsyncStorage.removeItem(
+            "usuario"
+          );
+
+          setUsuario(null);
+        } finally {
+          setCargandoSesion(
+            false
+          );
+        }
+      };
+
+    cargarSesion();
+  }, []);
+
+  // -----------------------------------------
+  // INICIAR SESIÓN
+  // -----------------------------------------
+  const login = async (
+    userData: User
+  ) => {
+    try {
+      const usuarioNormalizado: User =
+        {
+          id_usuario:
+            Number(
+              userData.id_usuario
+            ),
+
+          nombre:
+            userData.nombre,
+
+          apellido:
+            userData.apellido ||
+            "",
+
+          correo:
+            userData.correo,
+
+          telefono:
+            userData.telefono ||
+            "",
+
+          rol:
+            userData.rol,
+
+          estado:
+            userData.estado,
+
+          imagen_perfil:
+            userData.imagen_perfil ||
+            null,
         };
 
-        cargarSesion();
-    }, []);
+      setUsuario(
+        usuarioNormalizado
+      );
 
-    // Guardar los datos del usuario al iniciar sesión
-    // o cuando se actualicen, incluida la foto de perfil.
-    const login = async (userData: User) => {
-        try {
-            setUser(userData);
+      await AsyncStorage.setItem(
+        "usuario",
+        JSON.stringify(
+          usuarioNormalizado
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Error al guardar la sesión:",
+        error
+      );
 
-            await AsyncStorage.setItem(
-                "usuario",
-                JSON.stringify(userData)
-            );
-        } catch (error) {
-            console.error(
-                "Error al guardar la sesión:",
-                error
-            );
+      throw error;
+    }
+  };
 
-            throw error;
+  // -----------------------------------------
+  // ACTUALIZAR DATOS DEL USUARIO EN SESIÓN
+  // -----------------------------------------
+  const actualizarUsuario =
+    async (
+      userData: Partial<User>
+    ) => {
+      try {
+        if (!usuario) {
+          throw new Error(
+            "No existe una sesión activa."
+          );
         }
+
+        const usuarioActualizado: User =
+          {
+            ...usuario,
+            ...userData,
+          };
+
+        setUsuario(
+          usuarioActualizado
+        );
+
+        await AsyncStorage.setItem(
+          "usuario",
+          JSON.stringify(
+            usuarioActualizado
+          )
+        );
+      } catch (error) {
+        console.error(
+          "Error al actualizar la sesión:",
+          error
+        );
+
+        throw error;
+      }
     };
 
-    // Eliminar los datos guardados al cerrar sesión.
-    const logout = async () => {
-        try {
-            setUser(null);
-            await AsyncStorage.removeItem("usuario");
-        } catch (error) {
-            console.error(
-                "Error al cerrar la sesión:",
-                error
-            );
+  // -----------------------------------------
+  // CERRAR SESIÓN
+  // -----------------------------------------
+  const logout =
+    async () => {
+      try {
+        setUsuario(null);
 
-            throw error;
-        }
+        await AsyncStorage.removeItem(
+          "usuario"
+        );
+      } catch (error) {
+        console.error(
+          "Error al cerrar la sesión:",
+          error
+        );
+
+        throw error;
+      }
     };
 
-    return (
-        <AuthContext.Provider
-            value={{
-                usuario,
-                cargandoSesion,
-                login,
-                logout,
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider
+      value={{
+        usuario,
+        cargandoSesion,
+        login,
+        actualizarUsuario,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context =
+    useContext(
+      AuthContext
+    );
+
+  if (!context) {
+    throw new Error(
+      "useAuth debe utilizarse dentro de AuthProvider."
+    );
+  }
+
+  return context;
+};

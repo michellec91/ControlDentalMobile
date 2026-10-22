@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
+
 import {
+  ActivityIndicator,
   Image,
   Pressable,
   ScrollView,
@@ -10,290 +12,734 @@ import {
   TextInput,
   View,
 } from "react-native";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import HomeHeader from "../components/home/HomeHeader";
 import SideMenu from "../components/home/SideMenu";
 import { colors } from "../constants/theme";
-import type { Treatment } from "../data/treatments";
 import { obtenerTratamientos } from "../services/api";
+
+interface Tratamiento {
+  id_tratamiento: number;
+  nombre: string;
+  descripcion?: string;
+  precio: number | string;
+  duracion?: number;
+  estado?: string;
+  imagen?: string | null;
+}
 
 export default function TreatmentsScreen() {
   const [search, setSearch] = useState("");
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [tratamientos, setTratamientos] = useState<Treatment[]>([]);
-  const [cargando, setCargando] = useState(true);
 
+  const [
+    menuVisible,
+    setMenuVisible,
+  ] = useState(false);
+
+  const [
+    tratamientos,
+    setTratamientos,
+  ] = useState<Tratamiento[]>([]);
+
+  const [
+    cargando,
+    setCargando,
+  ] = useState(true);
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+  // -----------------------------------------
+  // CARGAR TRATAMIENTOS
+  // -----------------------------------------
   useEffect(() => {
-    const cargarTratamientos = async () => {
-      try {
-        const datos = await obtenerTratamientos();
-        setTratamientos(datos);
-      } catch (error) {
-        console.error("Error cargando tratamientos:", error);
-      } finally {
-        setCargando(false);
-      }
-    };
+    const cargarTratamientos =
+      async () => {
+        try {
+          setCargando(true);
+          setError("");
+
+          const datos =
+            await obtenerTratamientos();
+
+          const lista =
+            Array.isArray(datos)
+              ? datos
+              : [];
+
+          const tratamientosActivos =
+            lista.filter(
+              (
+                tratamiento: Tratamiento
+              ) =>
+                !tratamiento.estado ||
+                tratamiento.estado.toLowerCase() ===
+                  "activo"
+            );
+
+          setTratamientos(
+            tratamientosActivos
+          );
+        } catch (error) {
+          console.error(
+            "Error cargando tratamientos:",
+            error
+          );
+
+          setTratamientos([]);
+
+          setError(
+            error instanceof Error
+              ? error.message
+              : "No fue posible cargar los tratamientos."
+          );
+        } finally {
+          setCargando(false);
+        }
+      };
 
     cargarTratamientos();
   }, []);
 
-  const filteredTreatments = useMemo(() => {
-    return tratamientos.filter((treatment) =>
-      treatment.nombre.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [search, tratamientos]);
+  // -----------------------------------------
+  // FILTRAR TRATAMIENTOS
+  // -----------------------------------------
+  const filteredTreatments =
+    useMemo(() => {
+      const busqueda =
+        search
+          .trim()
+          .toLowerCase();
 
-  const handleSchedule = (treatment: Treatment) => {
+      if (!busqueda) {
+        return tratamientos;
+      }
+
+      return tratamientos.filter(
+        (tratamiento) => {
+          const nombre =
+            tratamiento.nombre
+              ?.toLowerCase() ||
+            "";
+
+          const descripcion =
+            tratamiento.descripcion
+              ?.toLowerCase() ||
+            "";
+
+          return (
+            nombre.includes(
+              busqueda
+            ) ||
+            descripcion.includes(
+              busqueda
+            )
+          );
+        }
+      );
+    }, [
+      search,
+      tratamientos,
+    ]);
+
+  // -----------------------------------------
+  // AGENDAR TRATAMIENTO
+  // -----------------------------------------
+  const handleSchedule = (
+    treatment: Tratamiento
+  ) => {
     router.push({
-      pathname: "/appointment/create",
+      pathname:
+        "/appointment/create",
+
       params: {
-        treatmentId: treatment.id_tratamiento,
-        id_tratamiento: treatment.id_tratamiento,
-        tratamiento: treatment.nombre,
+        treatmentId: String(
+          treatment.id_tratamiento
+        ),
+
+        id_tratamiento:
+          String(
+            treatment.id_tratamiento
+          ),
       },
     });
   };
 
   return (
     <SafeAreaView
-      style={styles.safeArea}
-      edges={["top", "left", "right", "bottom"]}
+      style={
+        styles.safeArea
+      }
+      edges={[
+        "top",
+        "left",
+        "right",
+        "bottom",
+      ]}
     >
-      <SideMenu visible={menuVisible} onClose={() => setMenuVisible(false)} />
+      <SideMenu
+        visible={
+          menuVisible
+        }
+        onClose={() =>
+          setMenuVisible(
+            false
+          )
+        }
+      />
 
       <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={
+          false
+        }
+        contentContainerStyle={
+          styles.content
+        }
       >
-        <HomeHeader onMenuPress={() => setMenuVisible(true)} />
+        <HomeHeader
+          onMenuPress={() =>
+            setMenuVisible(
+              true
+            )
+          }
+        />
 
         <Image
-          source={require("../../assets/images/treatments.jpg")}
-          style={styles.heroImage}
+          source={require(
+            "../../assets/images/treatments.jpg"
+          )}
+          style={
+            styles.heroImage
+          }
           resizeMode="cover"
         />
 
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>SERVICIOS</Text>
+        <View
+          style={
+            styles.header
+          }
+        >
+          <Text
+            style={
+              styles.eyebrow
+            }
+          >
+            SERVICIOS
+          </Text>
 
-          <Text style={styles.title}>Nuestros tratamientos</Text>
+          <Text
+            style={
+              styles.title
+            }
+          >
+            Nuestros tratamientos
+          </Text>
 
-          <Text style={styles.subtitle}>
-            Conocé las opciones disponibles y encontrá el tratamiento que
+          <Text
+            style={
+              styles.subtitle
+            }
+          >
+            Conocé las opciones
+            disponibles y encontrá
+            el tratamiento que
             necesitás.
           </Text>
         </View>
 
-        <View style={styles.searchContainer}>
+        {/* BUSCADOR */}
+        <View
+          style={
+            styles.searchContainer
+          }
+        >
           <Ionicons
             name="search-outline"
             size={20}
-            color={colors.textSecondary}
+            color={
+              colors.textSecondary
+            }
           />
 
           <TextInput
             value={search}
-            onChangeText={setSearch}
+            onChangeText={
+              setSearch
+            }
             placeholder="Buscar tratamiento"
-            placeholderTextColor={colors.textSecondary}
-            style={styles.searchInput}
+            placeholderTextColor={
+              colors.textSecondary
+            }
+            style={
+              styles.searchInput
+            }
           />
         </View>
 
-        <View style={styles.resultsHeader}>
-          <Text style={styles.resultsText}>
-            {filteredTreatments.length}{" "}
-            {filteredTreatments.length === 1 ? "tratamiento" : "tratamientos"}
-          </Text>
-        </View>
+        {/* CARGANDO */}
+        {cargando ? (
+          <View
+            style={
+              styles.loadingContainer
+            }
+          >
+            <ActivityIndicator
+              size="large"
+              color={
+                colors.primary
+              }
+            />
 
-        <View style={styles.list}>
-          {filteredTreatments.map((treatment) => (
-            <View key={treatment.id_tratamiento} style={styles.card}>
-              <View style={styles.cardTop}>
-                <View style={styles.iconContainer}>
-                  <Ionicons
-                    name="medical-outline"
-                    size={22}
-                    color={colors.primary}
-                  />
-                </View>
+            <Text
+              style={
+                styles.loadingText
+              }
+            >
+              Cargando tratamientos...
+            </Text>
+          </View>
+        ) : error ? (
+          // ERROR
+          <View
+            style={
+              styles.errorContainer
+            }
+          >
+            <Ionicons
+              name="alert-circle-outline"
+              size={20}
+              color="#D9534F"
+            />
 
-                <View style={styles.cardHeaderText}>
-                  <Text style={styles.cardTitle}>{treatment.nombre}</Text>
-
-                  <Text style={styles.duration}>{treatment.duracion} min</Text>
-                </View>
-
-                <Text style={styles.price}>
-                  ${Number(treatment.precio).toFixed(2)}
-                </Text>
-              </View>
-
-              <Text style={styles.description}>{treatment.descripcion}</Text>
-
-              <Pressable
-                style={styles.button}
-                onPress={() => handleSchedule(treatment)}
+            <Text
+              style={
+                styles.errorText
+              }
+            >
+              {error}
+            </Text>
+          </View>
+        ) : (
+          <>
+            {/* RESULTADOS */}
+            <View
+              style={
+                styles.resultsHeader
+              }
+            >
+              <Text
+                style={
+                  styles.resultsText
+                }
               >
-                <Text style={styles.buttonText}>Agendar tratamiento</Text>
-
-                <Ionicons name="arrow-forward" size={18} color={colors.white} />
-              </Pressable>
+                {
+                  filteredTreatments.length
+                }{" "}
+                {filteredTreatments.length ===
+                1
+                  ? "tratamiento"
+                  : "tratamientos"}
+              </Text>
             </View>
-          ))}
-        </View>
+
+            {/* LISTA */}
+            <View
+              style={
+                styles.list
+              }
+            >
+              {filteredTreatments.length >
+              0 ? (
+                filteredTreatments.map(
+                  (
+                    treatment
+                  ) => (
+                    <View
+                      key={
+                        treatment.id_tratamiento
+                      }
+                      style={
+                        styles.card
+                      }
+                    >
+                      <View
+                        style={
+                          styles.cardTop
+                        }
+                      >
+                        <View
+                          style={
+                            styles.iconContainer
+                          }
+                        >
+                          <Ionicons
+                            name="medical-outline"
+                            size={
+                              22
+                            }
+                            color={
+                              colors.primary
+                            }
+                          />
+                        </View>
+
+                        <View
+                          style={
+                            styles.cardHeaderText
+                          }
+                        >
+                          <Text
+                            style={
+                              styles.cardTitle
+                            }
+                          >
+                            {
+                              treatment.nombre
+                            }
+                          </Text>
+
+                          <Text
+                            style={
+                              styles.duration
+                            }
+                          >
+                            {treatment.duracion
+                              ? `${treatment.duracion} min`
+                              : "Duración no especificada"}
+                          </Text>
+                        </View>
+
+                        <Text
+                          style={
+                            styles.price
+                          }
+                        >
+                          $
+                          {Number(
+                            treatment.precio ||
+                              0
+                          ).toFixed(
+                            2
+                          )}
+                        </Text>
+                      </View>
+
+                      <Text
+                        style={
+                          styles.description
+                        }
+                      >
+                        {treatment.descripcion ||
+                          "Sin descripción disponible."}
+                      </Text>
+
+                      <Pressable
+                        style={
+                          styles.button
+                        }
+                        onPress={() =>
+                          handleSchedule(
+                            treatment
+                          )
+                        }
+                      >
+                        <Text
+                          style={
+                            styles.buttonText
+                          }
+                        >
+                          Solicitar cita
+                        </Text>
+
+                        <Ionicons
+                          name="arrow-forward"
+                          size={
+                            18
+                          }
+                          color={
+                            colors.white
+                          }
+                        />
+                      </Pressable>
+                    </View>
+                  )
+                )
+              ) : (
+                <View
+                  style={
+                    styles.emptyContainer
+                  }
+                >
+                  <Ionicons
+                    name="search-outline"
+                    size={32}
+                    color={
+                      colors.textSecondary
+                    }
+                  />
+
+                  <Text
+                    style={
+                      styles.emptyText
+                    }
+                  >
+                    No se encontraron
+                    tratamientos.
+                  </Text>
+                </View>
+              )}
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+const styles =
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor:
+        colors.background,
+    },
 
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 40,
-  },
+    content: {
+      paddingHorizontal:
+        20,
+      paddingTop: 12,
+      paddingBottom:
+        40,
+    },
 
-  heroImage: {
-    width: "100%",
-    height: 165,
-    borderRadius: 22,
-    marginBottom: 22,
-  },
+    heroImage: {
+      width: "100%",
+      height: 165,
+      borderRadius: 22,
+      marginBottom: 22,
+    },
 
-  header: {
-    marginBottom: 20,
-  },
+    header: {
+      marginBottom: 20,
+    },
 
-  eyebrow: {
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 1.2,
-    color: colors.primary,
-    marginBottom: 6,
-  },
+    eyebrow: {
+      fontSize: 11,
+      fontWeight:
+        "800",
+      letterSpacing:
+        1.2,
+      color:
+        colors.primary,
+      marginBottom: 6,
+    },
 
-  title: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: colors.text,
-  },
+    title: {
+      fontSize: 28,
+      fontWeight:
+        "800",
+      color:
+        colors.text,
+    },
 
-  subtitle: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: colors.textSecondary,
-    marginTop: 8,
-  },
+    subtitle: {
+      fontSize: 14,
+      lineHeight: 21,
+      color:
+        colors.textSecondary,
+      marginTop: 8,
+    },
 
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    marginBottom: 18,
-  },
+    searchContainer: {
+      flexDirection:
+        "row",
+      alignItems:
+        "center",
+      backgroundColor:
+        colors.surface,
+      borderWidth: 1,
+      borderColor:
+        colors.border,
+      borderRadius: 16,
+      paddingHorizontal:
+        14,
+      marginBottom: 18,
+    },
 
-  searchInput: {
-    flex: 1,
-    paddingVertical: 14,
-    marginLeft: 9,
-    fontSize: 15,
-    color: colors.text,
-  },
+    searchInput: {
+      flex: 1,
+      paddingVertical:
+        14,
+      marginLeft: 9,
+      fontSize: 15,
+      color:
+        colors.text,
+    },
 
-  resultsHeader: {
-    marginBottom: 12,
-  },
+    loadingContainer: {
+      alignItems:
+        "center",
+      paddingVertical:
+        40,
+      gap: 12,
+    },
 
-  resultsText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.textSecondary,
-  },
+    loadingText: {
+      fontSize: 13,
+      color:
+        colors.textSecondary,
+      fontWeight:
+        "600",
+    },
 
-  list: {
-    gap: 14,
-  },
+    errorContainer: {
+      flexDirection:
+        "row",
+      alignItems:
+        "center",
+      backgroundColor:
+        "#FDECEA",
+      borderWidth: 1,
+      borderColor:
+        "#F5C6CB",
+      borderRadius: 14,
+      padding: 14,
+      gap: 8,
+    },
 
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 22,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
+    errorText: {
+      flex: 1,
+      color:
+        "#D9534F",
+      fontSize: 13,
+      fontWeight:
+        "600",
+    },
 
-  cardTop: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    resultsHeader: {
+      marginBottom: 12,
+    },
 
-  iconContainer: {
-    width: 46,
-    height: 46,
-    borderRadius: 15,
-    backgroundColor: colors.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    resultsText: {
+      fontSize: 13,
+      fontWeight:
+        "600",
+      color:
+        colors.textSecondary,
+    },
 
-  cardHeaderText: {
-    flex: 1,
-    marginLeft: 12,
-  },
+    list: {
+      gap: 14,
+    },
 
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: colors.text,
-  },
+    card: {
+      backgroundColor:
+        colors.surface,
+      borderRadius: 22,
+      padding: 18,
+      borderWidth: 1,
+      borderColor:
+        colors.border,
+    },
 
-  duration: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 4,
-  },
+    cardTop: {
+      flexDirection:
+        "row",
+      alignItems:
+        "center",
+    },
 
-  price: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: colors.secondary,
-  },
+    iconContainer: {
+      width: 46,
+      height: 46,
+      borderRadius: 15,
+      backgroundColor:
+        colors.primaryLight,
+      alignItems:
+        "center",
+      justifyContent:
+        "center",
+    },
 
-  description: {
-    fontSize: 13,
-    lineHeight: 20,
-    color: colors.textSecondary,
-    marginTop: 15,
-  },
+    cardHeaderText: {
+      flex: 1,
+      marginLeft: 12,
+    },
 
-  button: {
-    marginTop: 16,
-    backgroundColor: colors.primary,
-    borderRadius: 14,
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
+    cardTitle: {
+      fontSize: 16,
+      fontWeight:
+        "700",
+      color:
+        colors.text,
+    },
 
-  buttonText: {
-    color: colors.white,
-    fontSize: 14,
-    fontWeight: "700",
-  },
-});
+    duration: {
+      fontSize: 12,
+      color:
+        colors.textSecondary,
+      marginTop: 4,
+    },
+
+    price: {
+      fontSize: 18,
+      fontWeight:
+        "800",
+      color:
+        colors.secondary,
+    },
+
+    description: {
+      fontSize: 13,
+      lineHeight: 20,
+      color:
+        colors.textSecondary,
+      marginTop: 15,
+    },
+
+    button: {
+      marginTop: 16,
+      backgroundColor:
+        colors.primary,
+      borderRadius: 14,
+      paddingVertical:
+        13,
+      paddingHorizontal:
+        16,
+      flexDirection:
+        "row",
+      alignItems:
+        "center",
+      justifyContent:
+        "center",
+      gap: 8,
+    },
+
+    buttonText: {
+      color:
+        colors.white,
+      fontSize: 14,
+      fontWeight:
+        "700",
+    },
+
+    emptyContainer: {
+      alignItems:
+        "center",
+      paddingVertical:
+        36,
+      gap: 10,
+    },
+
+    emptyText: {
+      fontSize: 13,
+      color:
+        colors.textSecondary,
+      textAlign:
+        "center",
+    },
+  });

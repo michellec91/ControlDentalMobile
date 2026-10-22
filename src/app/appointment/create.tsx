@@ -1,386 +1,1097 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import {
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
+
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import {
+  API_URL,
+  obtenerHorarios,
+  obtenerTratamientos,
+} from "../../services/api";
+
+import { useAuth } from "../../context/AuthContext";
+
+interface Tratamiento {
+  id_tratamiento: number;
+  nombre: string;
+  descripcion?: string;
+  precio?: number | string;
+  duracion?: number;
+  estado?: string;
+  imagen?: string | null;
+}
+
+interface Cita {
+  id_cita: number;
+  id_usuario: number;
+  id_tratamiento: number;
+  fecha: string;
+  hora: string;
+  estado: string;
+}
+
+interface Horario {
+  id_horario: number;
+  dia_semana: string;
+  hora_inicio: string;
+  hora_fin: string;
+  estado: string;
+}
 
 export default function CreateAppointmentScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const hoyStr = new Date().toISOString().split("T")[0];
+  const { usuario } = useAuth();
 
-  const [fecha, setFecha] = useState("");
-  const [hora, setHora] = useState("");
-  const [tratamientoSeleccionado, setTratamientoSeleccionado] =
-    useState<any>(null);
-  const [usuarioObj, setUsuarioObj] = useState<any>(null);
+  const hoy = new Date();
 
-  const [listaTratamientos, setListaTratamientos] = useState<any[]>([
-    { id_tratamiento: 1, nombre: "Odontología preventiva" },
-    { id_tratamiento: 2, nombre: "Ortodoncia" },
-    { id_tratamiento: 3, nombre: "Limpieza dental profunda" },
-    { id_tratamiento: 4, nombre: "Evaluación/Consulta Dental" },
-  ]);
-  const [citasExistentes, setCitasExistentes] = useState<any[]>([]);
-  const [horasDisponibles, setHorasDisponibles] = useState<string[]>([]);
+  const hoyStr =
+    `${hoy.getFullYear()}-${String(
+      hoy.getMonth() + 1
+    ).padStart(2, "0")}-${String(
+      hoy.getDate()
+    ).padStart(2, "0")}`;
 
-  const [error, setError] = useState("");
-  const [exito, setExito] = useState("");
-  const [cargando, setCargando] = useState(false);
+  const [
+    fecha,
+    setFecha,
+  ] = useState("");
 
-  const API_CITAS = "http://localhost:3001/citas";
-  const API_TRATAMIENTOS = "http://localhost:3001/tratamientos";
+  const [
+    hora,
+    setHora,
+  ] = useState("");
 
+  const [
+    tratamientoSeleccionado,
+    setTratamientoSeleccionado,
+  ] =
+    useState<Tratamiento | null>(
+      null
+    );
+
+  const [
+    listaTratamientos,
+    setListaTratamientos,
+  ] =
+    useState<Tratamiento[]>([]);
+
+  const [
+    citasExistentes,
+    setCitasExistentes,
+  ] =
+    useState<Cita[]>([]);
+
+  const [
+    horarios,
+    setHorarios,
+  ] =
+    useState<Horario[]>([]);
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+  const [
+    exito,
+    setExito,
+  ] = useState("");
+
+  const [
+    cargando,
+    setCargando,
+  ] = useState(false);
+
+  const [
+    cargandoDatos,
+    setCargandoDatos,
+  ] = useState(true);
+
+  // -----------------------------------------
+  // CARGAR DATOS
+  // -----------------------------------------
   useEffect(() => {
     cargarDatosIniciales();
   }, []);
 
-  useEffect(() => {
-    if (!fecha) {
-      setHorasDisponibles([]);
-      setHora("");
-      return;
-    }
+  const cargarDatosIniciales =
+    async () => {
+      try {
+        setCargandoDatos(true);
+        setError("");
 
-    const fechaObj = new Date(`${fecha}T00:00:00`);
-    const diaSemana = fechaObj.getDay();
-
-    if (diaSemana === 0) {
-      setError(
-        "La clínica permanece cerrada los domingos. Por favor selecciona otra fecha.",
-      );
-      setHorasDisponibles([]);
-      setHora("");
-      return;
-    }
-
-    setError("");
-
-    const horasSemana = [
-      "08:00 AM",
-      "09:00 AM",
-      "10:00 AM",
-      "11:00 AM",
-      "12:00 PM",
-      "01:00 PM",
-      "02:00 PM",
-      "03:00 PM",
-      "04:00 PM",
-      "05:00 PM",
-    ];
-
-    const horasSabado = [
-      "08:00 AM",
-      "09:00 AM",
-      "10:00 AM",
-      "11:00 AM",
-      "12:00 PM",
-    ];
-
-    if (diaSemana === 6) {
-      setHorasDisponibles(horasSabado);
-    } else {
-      setHorasDisponibles(horasSemana);
-    }
-  }, [fecha]);
-
-  const cargarDatosIniciales = async () => {
-    try {
-      // 1. Cargar usuario de sesión activa
-      if (typeof window !== "undefined") {
-        const sessionUser =
-          localStorage.getItem("usuario") ||
-          localStorage.getItem("user") ||
-          sessionStorage.getItem("usuario") ||
-          sessionStorage.getItem("user");
-
-        if (sessionUser) {
-          try {
-            const parsed = JSON.parse(sessionUser);
-            setUsuarioObj(parsed);
-          } catch (e) {}
-        }
-      }
-
-      // 2. Cargar citas para validaciones
-      const resCitas = await fetch(API_CITAS).catch(() => null);
-      if (resCitas && resCitas.ok) {
-        const dataCitas = await resCitas.json();
-        setCitasExistentes(Array.isArray(dataCitas) ? dataCitas : []);
-      }
-
-      // 3. Cargar tratamientos y preseleccionar el enviado desde treatments.tsx
-      const resTratamientos = await fetch(API_TRATAMIENTOS).catch(() => null);
-      let lista = listaTratamientos;
-      if (resTratamientos && resTratamientos.ok) {
-        const dataTrat = await resTratamientos.json();
-        if (Array.isArray(dataTrat) && dataTrat.length > 0) {
-          lista = dataTrat;
-          setListaTratamientos(lista);
-        }
-      }
-
-      // Preseleccionar tratamiento recibido en params
-      const paramTratamiento =
-        params.treatmentId || params.id_tratamiento || params.tratamiento;
-      if (paramTratamiento && lista.length > 0) {
-        const encontrado = lista.find((t) => {
-          const nombreT = t.nombre || t.nombre_tratamiento || t.name;
-          const idT = t.id_tratamiento || t.id;
-          return (
-            String(idT) === String(paramTratamiento) ||
-            nombreT === paramTratamiento
+        // -------------------------------------
+        // CITAS
+        // -------------------------------------
+        const resCitas =
+          await fetch(
+            `${API_URL}/citas`
           );
-        });
 
-        if (encontrado) {
-          setTratamientoSeleccionado(encontrado);
+        const dataCitas =
+          await resCitas
+            .json()
+            .catch(() => []);
+
+        if (!resCitas.ok) {
+          throw new Error(
+            dataCitas?.error ||
+              "No se pudieron obtener las citas."
+          );
         }
+
+        setCitasExistentes(
+          Array.isArray(dataCitas)
+            ? dataCitas
+            : []
+        );
+
+        // -------------------------------------
+        // TRATAMIENTOS
+        // -------------------------------------
+        const dataTratamientos =
+          await obtenerTratamientos();
+
+        const tratamientosActivos =
+          Array.isArray(
+            dataTratamientos
+          )
+            ? dataTratamientos.filter(
+                (
+                  tratamiento: Tratamiento
+                ) =>
+                  !tratamiento.estado ||
+                  tratamiento.estado.toLowerCase() ===
+                    "activo"
+              )
+            : [];
+
+        setListaTratamientos(
+          tratamientosActivos
+        );
+
+        // -------------------------------------
+        // HORARIOS
+        // -------------------------------------
+        const dataHorarios =
+          await obtenerHorarios();
+
+        const horariosActivos =
+          Array.isArray(
+            dataHorarios
+          )
+            ? dataHorarios.filter(
+                (
+                  horario: Horario
+                ) =>
+                  !horario.estado ||
+                  horario.estado.toLowerCase() ===
+                    "activo"
+              )
+            : [];
+
+        setHorarios(
+          horariosActivos
+        );
+
+        // -------------------------------------
+        // TRATAMIENTO PRESELECCIONADO
+        // -------------------------------------
+        const paramTratamiento =
+          params.treatmentId ||
+          params.id_tratamiento ||
+          params.tratamiento;
+
+        if (
+          paramTratamiento &&
+          tratamientosActivos.length >
+            0
+        ) {
+          const encontrado =
+            tratamientosActivos.find(
+              (
+                tratamiento: Tratamiento
+              ) =>
+                String(
+                  tratamiento.id_tratamiento
+                ) ===
+                  String(
+                    paramTratamiento
+                  ) ||
+                tratamiento.nombre ===
+                  String(
+                    paramTratamiento
+                  )
+            );
+
+          if (encontrado) {
+            setTratamientoSeleccionado(
+              encontrado
+            );
+          }
+        }
+      } catch (error) {
+        console.error(
+          "Error al cargar los datos:",
+          error
+        );
+
+        setError(
+          error instanceof Error
+            ? error.message
+            : "No fue posible cargar los datos."
+        );
+      } finally {
+        setCargandoDatos(false);
       }
-    } catch (err) {
-      console.log("Error al cargar datos iniciales:", err);
-    }
-  };
-
-  const handleConfirmar = async () => {
-    setError("");
-    setExito("");
-
-    if (!usuarioObj) {
-      setError("Debes iniciar sesión para agendar una cita.");
-      return;
-    }
-
-    if (!fecha) {
-      setError("Por favor selecciona una fecha.");
-      return;
-    }
-
-    if (!hora) {
-      setError("Por favor selecciona un horario disponible.");
-      return;
-    }
-
-    if (!tratamientoSeleccionado) {
-      setError("Por favor selecciona un tratamiento.");
-      return;
-    }
-
-    if (fecha < hoyStr) {
-      setError("No puedes agendar una cita para una fecha pasada.");
-      return;
-    }
-
-    const citaDuplicada = citasExistentes.some((cita) => {
-      const citaFecha = (cita.fecha || cita.fecha_cita || "").split("T")[0];
-      const citaHora = cita.hora || cita.hora_cita || "";
-      return (
-        citaFecha === fecha && citaHora === hora && cita.estado !== "cancelada"
-      );
-    });
-
-    if (citaDuplicada) {
-      setError(
-        "Ese horario ya está ocupado en la clínica. Por favor selecciona otra fecha u hora.",
-      );
-      return;
-    }
-
-    setCargando(true);
-
-    const uId = usuarioObj.id_usuario || usuarioObj.id || usuarioObj.usuario_id;
-    const tratamiento_id =
-      tratamientoSeleccionado.id_tratamiento || tratamientoSeleccionado.id || 1;
-
-    const payload = {
-      usuario_id: uId,
-      id_usuario: uId,
-      tratamiento_id,
-      id_tratamiento: tratamiento_id,
-      fecha,
-      hora,
-      estado: "confirmada",
     };
 
-    try {
-      const res = await fetch(API_CITAS, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const resData = await res.json().catch(() => ({}));
-
-      if (res.ok) {
-        setExito("¡Cita agendada con éxito!");
-        setTimeout(() => {
-          router.push("/appointments" as any);
-        }, 1200);
-      } else {
-        setError(resData.mensaje || "Ocurrió un error al guardar la cita.");
+  // -----------------------------------------
+  // NORMALIZAR NOMBRE DEL DÍA
+  // -----------------------------------------
+  const obtenerNombreDia =
+    (fechaSeleccionada: string) => {
+      if (!fechaSeleccionada) {
+        return "";
       }
-    } catch (err) {
-      setError("Error de conexión con el servidor.");
-    } finally {
-      setCargando(false);
+
+      const fechaObj =
+        new Date(
+          `${fechaSeleccionada}T00:00:00`
+        );
+
+      const dias = [
+        "domingo",
+        "lunes",
+        "martes",
+        "miércoles",
+        "jueves",
+        "viernes",
+        "sábado",
+      ];
+
+      return dias[
+        fechaObj.getDay()
+      ];
+    };
+
+  const normalizarTexto =
+    (texto: string) =>
+      texto
+        .normalize("NFD")
+        .replace(
+          /[\u0300-\u036f]/g,
+          ""
+        )
+        .toLowerCase()
+        .trim();
+
+  // -----------------------------------------
+  // GENERAR HORAS
+  // -----------------------------------------
+  const generarHoras =
+    (
+      horaInicio: string,
+      horaFin: string
+    ) => {
+      const resultado: string[] =
+        [];
+
+      const [
+        horaInicioNumero,
+        minutoInicio,
+      ] =
+        horaInicio
+          .slice(0, 5)
+          .split(":")
+          .map(Number);
+
+      const [
+        horaFinNumero,
+        minutoFin,
+      ] =
+        horaFin
+          .slice(0, 5)
+          .split(":")
+          .map(Number);
+
+      let minutosActuales =
+        horaInicioNumero * 60 +
+        minutoInicio;
+
+      const minutosFinales =
+        horaFinNumero * 60 +
+        minutoFin;
+
+      while (
+        minutosActuales <=
+        minutosFinales
+      ) {
+        const horas =
+          Math.floor(
+            minutosActuales /
+              60
+          );
+
+        const minutos =
+          minutosActuales % 60;
+
+        resultado.push(
+          `${String(
+            horas
+          ).padStart(
+            2,
+            "0"
+          )}:${String(
+            minutos
+          ).padStart(
+            2,
+            "0"
+          )}`
+        );
+
+        // Intervalos de una hora.
+        minutosActuales += 60;
+      }
+
+      return resultado;
+    };
+
+  // -----------------------------------------
+  // HORARIOS DISPONIBLES
+  // -----------------------------------------
+  const horasDisponibles =
+    useMemo(() => {
+      if (!fecha) {
+        return [];
+      }
+
+      const nombreDia =
+        obtenerNombreDia(
+          fecha
+        );
+
+      if (
+        nombreDia ===
+        "domingo"
+      ) {
+        return [];
+      }
+
+      const horarioDia =
+        horarios.find(
+          (horario) =>
+            normalizarTexto(
+              horario.dia_semana
+            ) ===
+            normalizarTexto(
+              nombreDia
+            )
+        );
+
+      if (!horarioDia) {
+        return [];
+      }
+
+      const todasLasHoras =
+        generarHoras(
+          horarioDia.hora_inicio,
+          horarioDia.hora_fin
+        );
+
+      return todasLasHoras.filter(
+        (horaDisponible) => {
+          const horaBD =
+            `${horaDisponible}:00`;
+
+          const ocupada =
+            citasExistentes.some(
+              (cita) => {
+                const fechaCita =
+                  cita.fecha?.includes(
+                    "T"
+                  )
+                    ? cita.fecha.split(
+                        "T"
+                      )[0]
+                    : cita.fecha;
+
+                const horaCita =
+                  cita.hora?.slice(
+                    0,
+                    8
+                  );
+
+                const estado =
+                  cita.estado
+                    ?.toLowerCase()
+                    .trim();
+
+                return (
+                  fechaCita ===
+                    fecha &&
+                  horaCita ===
+                    horaBD &&
+                  estado !==
+                    "cancelada"
+                );
+              }
+            );
+
+          return !ocupada;
+        }
+      );
+    }, [
+      fecha,
+      horarios,
+      citasExistentes,
+    ]);
+
+  // Limpiar hora si cambia la fecha.
+  useEffect(() => {
+    setHora("");
+
+    if (!fecha) {
+      setError("");
+      return;
     }
-  };
+
+    const nombreDia =
+      obtenerNombreDia(fecha);
+
+    if (
+      nombreDia ===
+      "domingo"
+    ) {
+      setError(
+        "La clínica permanece cerrada los domingos."
+      );
+
+      return;
+    }
+
+    const horarioExiste =
+      horarios.some(
+        (horario) =>
+          normalizarTexto(
+            horario.dia_semana
+          ) ===
+          normalizarTexto(
+            nombreDia
+          )
+      );
+
+    if (
+      horarios.length > 0 &&
+      !horarioExiste
+    ) {
+      setError(
+        "La clínica no posee un horario activo para ese día."
+      );
+
+      return;
+    }
+
+    setError("");
+  }, [
+    fecha,
+    horarios,
+  ]);
+
+  // -----------------------------------------
+  // FORMATEAR HORA
+  // -----------------------------------------
+  const formatearHora =
+    (hora24: string) => {
+      const [
+        horas,
+        minutos,
+      ] =
+        hora24
+          .slice(0, 5)
+          .split(":");
+
+      const numeroHora =
+        Number(horas);
+
+      if (numeroHora === 0) {
+        return `12:${minutos} a. m.`;
+      }
+
+      if (numeroHora === 12) {
+        return `12:${minutos} p. m.`;
+      }
+
+      if (numeroHora > 12) {
+        return `${
+          numeroHora - 12
+        }:${minutos} p. m.`;
+      }
+
+      return `${numeroHora}:${minutos} a. m.`;
+    };
+
+  // -----------------------------------------
+  // CONFIRMAR
+  // -----------------------------------------
+  const handleConfirmar =
+    async () => {
+      setError("");
+      setExito("");
+
+      if (!usuario) {
+        setError(
+          "Debes iniciar sesión para solicitar una cita."
+        );
+
+        return;
+      }
+
+      const idUsuario =
+        usuario.id_usuario;
+
+      if (!idUsuario) {
+        setError(
+          "No fue posible identificar al usuario."
+        );
+
+        return;
+      }
+
+      if (!fecha) {
+        setError(
+          "Por favor ingresa una fecha."
+        );
+
+        return;
+      }
+
+      const formatoFecha =
+        /^\d{4}-\d{2}-\d{2}$/;
+
+      if (
+        !formatoFecha.test(
+          fecha
+        )
+      ) {
+        setError(
+          "La fecha debe escribirse en formato AAAA-MM-DD."
+        );
+
+        return;
+      }
+
+      if (fecha < hoyStr) {
+        setError(
+          "No puedes solicitar una cita para una fecha pasada."
+        );
+
+        return;
+      }
+
+      if (
+        obtenerNombreDia(
+          fecha
+        ) === "domingo"
+      ) {
+        setError(
+          "La clínica permanece cerrada los domingos."
+        );
+
+        return;
+      }
+
+      if (!hora) {
+        setError(
+          "Por favor selecciona una hora."
+        );
+
+        return;
+      }
+
+      if (
+        !tratamientoSeleccionado
+      ) {
+        setError(
+          "Por favor selecciona un tratamiento."
+        );
+
+        return;
+      }
+
+      const horaBD =
+        `${hora}:00`;
+
+      try {
+        setCargando(true);
+
+        const payload = {
+          id_usuario:
+            Number(
+              idUsuario
+            ),
+
+          id_tratamiento:
+            tratamientoSeleccionado.id_tratamiento,
+
+          fecha,
+
+          hora:
+            horaBD,
+        };
+
+        const res =
+          await fetch(
+            `${API_URL}/citas`,
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body:
+                JSON.stringify(
+                  payload
+                ),
+            }
+          );
+
+        const data =
+          await res
+            .json()
+            .catch(
+              () => ({})
+            );
+
+        if (!res.ok) {
+          throw new Error(
+            data.error ||
+              data.mensaje ||
+              "No se pudo crear la solicitud."
+          );
+        }
+
+        setExito(
+          "¡Solicitud de cita enviada con éxito!"
+        );
+
+        setTimeout(() => {
+          router.replace(
+            "/appointments"
+          );
+        }, 1000);
+      } catch (error) {
+        console.error(
+          "Error al crear cita:",
+          error
+        );
+
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Error de conexión con el servidor."
+        );
+      } finally {
+        setCargando(false);
+      }
+    };
+
+  // -----------------------------------------
+  // CARGANDO
+  // -----------------------------------------
+  if (cargandoDatos) {
+    return (
+      <View
+        style={
+          styles.loadingContainer
+        }
+      >
+        <ActivityIndicator
+          size="large"
+          color="#0088FF"
+        />
+
+        <Text
+          style={
+            styles.loadingText
+          }
+        >
+          Cargando información...
+        </Text>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.headerNav}>
+    <ScrollView
+      contentContainerStyle={
+        styles.container
+      }
+      keyboardShouldPersistTaps="handled"
+    >
+      {/* NAVEGACIÓN */}
+      <View
+        style={
+          styles.headerNav
+        }
+      >
         <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
+          onPress={() =>
+            router.back()
+          }
         >
-          <Text style={styles.backText}>← Volver</Text>
+          <Text
+            style={
+              styles.backText
+            }
+          >
+            ← Volver
+          </Text>
         </TouchableOpacity>
 
-        <View style={styles.iconGroup}>
+        <View
+          style={
+            styles.iconGroup
+          }
+        >
           <TouchableOpacity
-            onPress={() => router.push("/home" as any)}
-            style={styles.iconBtn}
+            onPress={() =>
+              router.push(
+                "/home"
+              )
+            }
           >
-            <Text style={styles.iconText}>🏠</Text>
+            <Text
+              style={
+                styles.iconText
+              }
+            >
+              🏠
+            </Text>
           </TouchableOpacity>
+
           <TouchableOpacity
-            onPress={() => router.push("/profile" as any)}
-            style={styles.iconBtn}
+            onPress={() =>
+              router.push(
+                "/profile"
+              )
+            }
           >
-            <Text style={styles.iconText}>👤</Text>
+            <Text
+              style={[
+                styles.iconText,
+                {
+                  marginLeft: 15,
+                },
+              ]}
+            >
+              👤
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <View style={styles.branding}>
-        <View style={styles.logoBox}>
-          <Text style={styles.logoIcon}>🦷</Text>
+      {/* MARCA */}
+      <View
+        style={
+          styles.branding
+        }
+      >
+        <View
+          style={
+            styles.logoBox
+          }
+        >
+          <Text
+            style={
+              styles.logoIcon
+            }
+          >
+            🦷
+          </Text>
         </View>
-        <Text style={styles.brandTitle}>Control Dental</Text>
-        <Text style={styles.brandSubtitle}>CLÍNICA DENTAL SONRISAS</Text>
+
+        <Text
+          style={
+            styles.brandTitle
+          }
+        >
+          Control Dental
+        </Text>
+
+        <Text
+          style={
+            styles.brandSubtitle
+          }
+        >
+          CLÍNICA DENTAL SONRISAS
+        </Text>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.title}>Nueva cita</Text>
-        <Text style={styles.subtitle}>Ver fechas disponibles:</Text>
+      <View
+        style={styles.card}
+      >
+        <Text
+          style={styles.title}
+        >
+          Nueva cita
+        </Text>
+
+        <Text
+          style={
+            styles.subtitle
+          }
+        >
+          Selecciona fecha,
+          hora y tratamiento
+        </Text>
 
         {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>⚠️ {error}</Text>
+          <View
+            style={
+              styles.errorBox
+            }
+          >
+            <Text
+              style={
+                styles.errorText
+              }
+            >
+              ⚠️ {error}
+            </Text>
           </View>
         ) : null}
 
         {exito ? (
-          <View style={styles.successBox}>
-            <Text style={styles.successText}>✓ {exito}</Text>
+          <View
+            style={
+              styles.successBox
+            }
+          >
+            <Text
+              style={
+                styles.successText
+              }
+            >
+              ✓ {exito}
+            </Text>
           </View>
         ) : null}
 
-        <View style={styles.inputContainer}>
-          <input
-            type="date"
-            min={hoyStr}
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
-            style={{
-              width: "100%",
-              backgroundColor: "transparent",
-              border: "none",
-              outline: "none",
-              fontSize: "14px",
-              fontWeight: "500",
-              color: "#1E293B",
-              cursor: "pointer",
-            }}
-          />
-        </View>
+        {/* FECHA */}
+        <Text
+          style={styles.label}
+        >
+          Fecha
+        </Text>
 
-        <View style={styles.inputContainer}>
-          <select
-            value={hora}
-            onChange={(e) => setHora(e.target.value)}
-            disabled={horasDisponibles.length === 0}
-            style={{
-              width: "100%",
-              backgroundColor: "transparent",
-              border: "none",
-              outline: "none",
-              fontSize: "14px",
-              fontWeight: "500",
-              color: "#1E293B",
-              cursor: horasDisponibles.length === 0 ? "not-allowed" : "pointer",
-            }}
-          >
-            <option value="">
-              {horasDisponibles.length === 0
-                ? "-- Selecciona una fecha válida primero --"
-                : "-- Seleccionar hora --"}
-            </option>
-            {horasDisponibles.map((h) => (
-              <option key={h} value={h}>
-                {h}
-              </option>
-            ))}
-          </select>
-        </View>
+        <TextInput
+          value={fecha}
+          onChangeText={
+            setFecha
+          }
+          placeholder="AAAA-MM-DD"
+          keyboardType="numbers-and-punctuation"
+          autoCapitalize="none"
+          style={
+            styles.input
+          }
+        />
 
-        <View style={styles.inputContainer}>
-          <select
-            value={
-              tratamientoSeleccionado
-                ? JSON.stringify(tratamientoSeleccionado)
-                : ""
+        <Text
+          style={
+            styles.helperText
+          }
+        >
+          Ejemplo: 2026-10-25
+        </Text>
+
+        {/* HORAS */}
+        <Text
+          style={styles.label}
+        >
+          Hora
+        </Text>
+
+        {!fecha ? (
+          <Text
+            style={
+              styles.emptyText
             }
-            onChange={(e) =>
-              setTratamientoSeleccionado(
-                e.target.value ? JSON.parse(e.target.value) : null,
-              )
-            }
-            style={{
-              width: "100%",
-              backgroundColor: "transparent",
-              border: "none",
-              outline: "none",
-              fontSize: "14px",
-              fontWeight: "500",
-              color: "#1E293B",
-              cursor: "pointer",
-            }}
           >
-            <option value="">-- Seleccionar tratamiento --</option>
-            {listaTratamientos.map((t, idx) => {
-              const nombreTratamiento =
-                t.nombre ||
-                t.nombre_tratamiento ||
-                t.name ||
-                `Tratamiento ${idx + 1}`;
-              return (
-                <option
-                  key={t.id_tratamiento || t.id || idx}
-                  value={JSON.stringify(t)}
+            Ingresa primero una fecha.
+          </Text>
+        ) : horasDisponibles.length ===
+          0 ? (
+          <Text
+            style={
+              styles.emptyText
+            }
+          >
+            No hay horarios disponibles para esta fecha.
+          </Text>
+        ) : (
+          <View
+            style={
+              styles.optionsContainer
+            }
+          >
+            {horasDisponibles.map(
+              (
+                horaDisponible
+              ) => (
+                <TouchableOpacity
+                  key={
+                    horaDisponible
+                  }
+                  style={[
+                    styles.optionButton,
+                    hora ===
+                      horaDisponible &&
+                      styles.optionButtonSelected,
+                  ]}
+                  onPress={() =>
+                    setHora(
+                      horaDisponible
+                    )
+                  }
                 >
-                  {nombreTratamiento}
-                </option>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      hora ===
+                        horaDisponible &&
+                        styles.optionTextSelected,
+                    ]}
+                  >
+                    {formatearHora(
+                      horaDisponible
+                    )}
+                  </Text>
+                </TouchableOpacity>
+              )
+            )}
+          </View>
+        )}
+
+        {/* TRATAMIENTO */}
+        <Text
+          style={[
+            styles.label,
+            {
+              marginTop: 16,
+            },
+          ]}
+        >
+          Tratamiento
+        </Text>
+
+        <View
+          style={
+            styles.treatmentList
+          }
+        >
+          {listaTratamientos.map(
+            (
+              tratamiento
+            ) => {
+              const seleccionado =
+                tratamientoSeleccionado?.id_tratamiento ===
+                tratamiento.id_tratamiento;
+
+              return (
+                <TouchableOpacity
+                  key={
+                    tratamiento.id_tratamiento
+                  }
+                  style={[
+                    styles.treatmentOption,
+                    seleccionado &&
+                      styles.treatmentOptionSelected,
+                  ]}
+                  onPress={() =>
+                    setTratamientoSeleccionado(
+                      tratamiento
+                    )
+                  }
+                >
+                  <Text
+                    style={[
+                      styles.treatmentName,
+                      seleccionado &&
+                        styles.treatmentNameSelected,
+                    ]}
+                  >
+                    🦷{" "}
+                    {
+                      tratamiento.nombre
+                    }
+                  </Text>
+
+                  {tratamiento.duracion ? (
+                    <Text
+                      style={
+                        styles.treatmentDetail
+                      }
+                    >
+                      Duración:{" "}
+                      {
+                        tratamiento.duracion
+                      }{" "}
+                      min
+                    </Text>
+                  ) : null}
+                </TouchableOpacity>
               );
-            })}
-          </select>
+            }
+          )}
         </View>
 
         <TouchableOpacity
-          style={[styles.button, cargando && styles.buttonDisabled]}
-          onPress={handleConfirmar}
-          disabled={cargando}
+          style={[
+            styles.button,
+            cargando &&
+              styles.buttonDisabled,
+          ]}
+          onPress={
+            handleConfirmar
+          }
+          disabled={
+            cargando
+          }
         >
           {cargando ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator
+              color="#FFFFFF"
+            />
           ) : (
-            <Text style={styles.buttonText}>CONFIRMAR</Text>
+            <Text
+              style={
+                styles.buttonText
+              }
+            >
+              SOLICITAR CITA
+            </Text>
           )}
         </TouchableOpacity>
       </View>
@@ -388,152 +1099,282 @@ export default function CreateAppointmentScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    backgroundColor: "#F0F9FF", // Fondo celeste unificado
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 32,
-    alignItems: "center",
-  },
-  headerNav: {
-    width: "100%",
-    maxWidth: 400,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  backButton: {
-    paddingVertical: 4,
-    paddingRight: 8,
-  },
-  backText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#1E293B",
-  },
-  iconGroup: {
-    flexDirection: "row",
-  },
-  iconBtn: {
-    marginLeft: 12,
-    padding: 4,
-  },
-  iconText: {
-    fontSize: 18,
-  },
-  branding: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  logoBox: {
-    width: 56,
-    height: 56,
-    backgroundColor: "#0088FF",
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-    elevation: 4,
-  },
-  logoIcon: {
-    fontSize: 28,
-  },
-  brandTitle: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
-  brandSubtitle: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#0088FF",
-    letterSpacing: 0.8,
-    marginTop: 2,
-  },
-  card: {
-    width: "100%",
-    maxWidth: 400,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-    padding: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#0F172A",
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#475569",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  errorBox: {
-    backgroundColor: "#FEE2E2",
-    borderWidth: 1,
-    borderColor: "#FCA5A5",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: "#991B1B",
-    fontSize: 13,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  successBox: {
-    backgroundColor: "#DCFCE7",
-    borderWidth: 1,
-    borderColor: "#86EFAC",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  successText: {
-    color: "#166534",
-    fontSize: 13,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  inputContainer: {
-    backgroundColor: "#FEF9C3",
-    borderWidth: 1,
-    borderColor: "#94A3B8",
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  button: {
-    backgroundColor: "#0088FF",
-    paddingVertical: 14,
-    borderRadius: 16,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontWeight: "800",
-    fontSize: 15,
-    letterSpacing: 0.5,
-  },
-});
+const styles =
+  StyleSheet.create({
+    container: {
+      flexGrow: 1,
+      backgroundColor:
+        "#F0F9FF",
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 32,
+      alignItems: "center",
+    },
+
+    loadingContainer: {
+      flex: 1,
+      backgroundColor:
+        "#F0F9FF",
+      justifyContent:
+        "center",
+      alignItems: "center",
+      gap: 12,
+    },
+
+    loadingText: {
+      color: "#475569",
+      fontSize: 14,
+      fontWeight: "600",
+    },
+
+    headerNav: {
+      width: "100%",
+      maxWidth: 430,
+      flexDirection: "row",
+      justifyContent:
+        "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+
+    backText: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: "#1E293B",
+    },
+
+    iconGroup: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    iconText: {
+      fontSize: 20,
+    },
+
+    branding: {
+      alignItems: "center",
+      marginBottom: 20,
+    },
+
+    logoBox: {
+      width: 56,
+      height: 56,
+      backgroundColor:
+        "#0088FF",
+      borderRadius: 18,
+      justifyContent:
+        "center",
+      alignItems: "center",
+      marginBottom: 8,
+      elevation: 4,
+    },
+
+    logoIcon: {
+      fontSize: 28,
+    },
+
+    brandTitle: {
+      fontSize: 22,
+      fontWeight: "800",
+      color: "#0F172A",
+    },
+
+    brandSubtitle: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: "#0088FF",
+      letterSpacing: 0.8,
+      marginTop: 2,
+    },
+
+    card: {
+      width: "100%",
+      maxWidth: 430,
+      backgroundColor:
+        "#FFFFFF",
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor:
+        "#CBD5E1",
+      padding: 22,
+      elevation: 3,
+    },
+
+    title: {
+      fontSize: 26,
+      fontWeight: "800",
+      color: "#0F172A",
+      textAlign: "center",
+      marginBottom: 4,
+    },
+
+    subtitle: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: "#475569",
+      textAlign: "center",
+      marginBottom: 20,
+    },
+
+    label: {
+      fontSize: 13,
+      color: "#334155",
+      fontWeight: "700",
+      marginBottom: 8,
+    },
+
+    input: {
+      width: "100%",
+      backgroundColor:
+        "#FEF9C3",
+      borderWidth: 1,
+      borderColor:
+        "#94A3B8",
+      borderRadius: 14,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      color: "#1E293B",
+      fontSize: 15,
+    },
+
+    helperText: {
+      fontSize: 11,
+      color: "#64748B",
+      marginTop: 5,
+      marginBottom: 16,
+    },
+
+    optionsContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+    },
+
+    optionButton: {
+      borderWidth: 1,
+      borderColor:
+        "#CBD5E1",
+      backgroundColor:
+        "#FFFFFF",
+      borderRadius: 12,
+      paddingHorizontal: 13,
+      paddingVertical: 9,
+    },
+
+    optionButtonSelected: {
+      backgroundColor:
+        "#0088FF",
+      borderColor:
+        "#0088FF",
+    },
+
+    optionText: {
+      color: "#334155",
+      fontSize: 13,
+      fontWeight: "700",
+    },
+
+    optionTextSelected: {
+      color: "#FFFFFF",
+    },
+
+    treatmentList: {
+      gap: 9,
+    },
+
+    treatmentOption: {
+      borderWidth: 1,
+      borderColor:
+        "#CBD5E1",
+      borderRadius: 14,
+      padding: 13,
+      backgroundColor:
+        "#F8FAFC",
+    },
+
+    treatmentOptionSelected: {
+      borderColor:
+        "#0088FF",
+      backgroundColor:
+        "#E0F2FE",
+    },
+
+    treatmentName: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: "#0F172A",
+    },
+
+    treatmentNameSelected: {
+      color: "#0369A1",
+    },
+
+    treatmentDetail: {
+      marginTop: 4,
+      fontSize: 11,
+      color: "#64748B",
+    },
+
+    emptyText: {
+      color: "#64748B",
+      fontSize: 13,
+      marginBottom: 8,
+    },
+
+    errorBox: {
+      backgroundColor:
+        "#FEE2E2",
+      borderWidth: 1,
+      borderColor:
+        "#FCA5A5",
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 16,
+    },
+
+    errorText: {
+      color: "#991B1B",
+      fontSize: 13,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+
+    successBox: {
+      backgroundColor:
+        "#DCFCE7",
+      borderWidth: 1,
+      borderColor:
+        "#86EFAC",
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 16,
+    },
+
+    successText: {
+      color: "#166534",
+      fontSize: 13,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+
+    button: {
+      backgroundColor:
+        "#0088FF",
+      paddingVertical: 14,
+      borderRadius: 16,
+      alignItems: "center",
+      marginTop: 22,
+    },
+
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+
+    buttonText: {
+      color: "#FFFFFF",
+      fontWeight: "800",
+      fontSize: 15,
+      letterSpacing: 0.5,
+    },
+  });
