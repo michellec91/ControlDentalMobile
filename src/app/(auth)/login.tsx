@@ -112,8 +112,8 @@ export default function LoginScreen() {
       if (!response.ok) {
         throw new Error(
           data.error ||
-            data.mensaje ||
-            "Credenciales incorrectas."
+          data.mensaje ||
+          "Credenciales incorrectas."
         );
       }
 
@@ -146,7 +146,7 @@ export default function LoginScreen() {
       if (
         estado &&
         estado !==
-          "activo"
+        "activo"
       ) {
         throw new Error(
           "Tu cuenta se encuentra inactiva."
@@ -156,6 +156,15 @@ export default function LoginScreen() {
       // -------------------------------------
       // GUARDAR SESIÓN
       // -------------------------------------
+      console.log(
+        "Foto recibida al iniciar sesión:",
+        data.usuario.imagen_perfil
+          ? `Existe (${data.usuario.imagen_perfil.length} caracteres)`
+          : "No se recibió ninguna foto"
+      );
+
+      await login(data.usuario);
+      
       await login(
         data.usuario
       );
@@ -400,7 +409,7 @@ export default function LoginScreen() {
             style={[
               styles.button,
               cargando &&
-                styles.buttonDisabled,
+              styles.buttonDisabled,
             ]}
             onPress={
               handleLogin

@@ -3,13 +3,13 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 
 import {
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -312,7 +312,7 @@ export default function EditProfileScreen() {
             `${API_URL}/usuarios/${idUsuario}`,
             {
               method:
-                "PATCH",
+                "PUT",
 
               headers: {
                 "Content-Type":

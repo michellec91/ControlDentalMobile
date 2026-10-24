@@ -3,13 +3,13 @@ import { router } from "expo-router";
 import { useState } from "react";
 
 import {
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,9 +22,9 @@ type MensajeModal = {
   titulo: string;
   mensaje: string;
   tipo:
-    | "exito"
-    | "error"
-    | "advertencia";
+  | "exito"
+  | "error"
+  | "advertencia";
   alAceptar?: () => void;
 };
 
@@ -213,8 +213,8 @@ export default function ChangePasswordScreen() {
         ) {
           throw new Error(
             datos.error ||
-              datos.mensaje ||
-              "No se pudo cambiar la contraseña."
+            datos.mensaje ||
+            "No se pudo cambiar la contraseña."
           );
         }
 
@@ -498,7 +498,7 @@ export default function ChangePasswordScreen() {
             style={[
               styles.button,
               guardando &&
-                styles.buttonDisabled,
+              styles.buttonDisabled,
             ]}
             onPress={
               guardarCambios
