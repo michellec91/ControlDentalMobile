@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   ActivityIndicator,
@@ -49,6 +50,7 @@ interface Horario {
 
 export default function EditAppointmentScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const { usuario } = useAuth();
 
@@ -372,7 +374,7 @@ export default function EditAppointmentScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[styles.container, { paddingTop: insets.top + 12 }]}
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.headerNav}>

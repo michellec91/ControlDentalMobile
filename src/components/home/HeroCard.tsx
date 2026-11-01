@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
 
 import { colors } from "../../constants/theme";
@@ -6,11 +6,11 @@ import { colors } from "../../constants/theme";
 export default function HeroCard() {
   return (
     <View style={styles.hero}>
-      <View style={styles.icon}>
-        <Ionicons
-          name="sparkles-outline"
-          size={24}
-          color={colors.primary}
+      <View pointerEvents="none" style={styles.toothDecoration}>
+        <MaterialCommunityIcons
+          name="tooth-outline"
+          size={152}
+          color="rgba(255, 255, 255, 0.60)"
         />
       </View>
 
@@ -29,27 +29,26 @@ export default function HeroCard() {
 
 const styles = StyleSheet.create({
   hero: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: "#B8DCEF",
     borderRadius: 26,
     padding: 24,
+    overflow: "hidden",
+    position: "relative",
   },
 
-  icon: {
-    width: 45,
-    height: 45,
-    borderRadius: 14,
-    backgroundColor: colors.white,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 18,
+  toothDecoration: {
+    position: "absolute",
+    right: -26,
+    bottom: -22,
+    transform: [{ rotate: "-13deg" }],
   },
 
   eyebrow: {
-    color: colors.primary,
+    color: colors.primaryDark,
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 1.2,
-    marginBottom: 7,
+    marginBottom: 10,
   },
 
   title: {
@@ -58,11 +57,13 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: colors.text,
     marginBottom: 10,
+    maxWidth: "88%",
   },
 
   text: {
     fontSize: 15,
     lineHeight: 22,
     color: colors.textSecondary,
+    maxWidth: "80%",
   },
 });

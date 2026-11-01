@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
     Pressable,
     StyleSheet,
@@ -101,12 +101,10 @@ export default function NextAppointmentCard({
               styles.icon
             }
           >
-            <Ionicons
-              name="medical"
-              size={23}
-              color={
-                colors.primary
-              }
+            <MaterialCommunityIcons
+              name="tooth-outline"
+              size={25}
+              color={colors.primaryDark}
             />
           </View>
 
@@ -212,12 +210,12 @@ const styles =
 
     card: {
       backgroundColor:
-        colors.surface,
+        "#F0E8E6",
       borderRadius: 20,
       padding: 18,
       borderWidth: 1,
       borderColor:
-        colors.border,
+        colors.primaryDark,
     },
 
     pressed: {
@@ -236,7 +234,7 @@ const styles =
       height: 44,
       borderRadius: 14,
       backgroundColor:
-        colors.primaryLight,
+        "#FFF9F9",
       alignItems:
         "center",
       justifyContent:

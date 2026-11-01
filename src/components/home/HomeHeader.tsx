@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, usePathname } from "expo-router";
 
 import {
   Image,
@@ -21,6 +21,7 @@ export default function HomeHeader({
 }: HomeHeaderProps) {
   const { usuario } =
     useAuth();
+  const isTreatmentsScreen = usePathname() === "/treatments";
 
   const fotoPerfil =
     usuario?.imagen_perfil ||
@@ -57,7 +58,7 @@ export default function HomeHeader({
           style={styles.logo}
         >
           <Ionicons
-            name="medical-outline"
+            name={isTreatmentsScreen ? "arrow-back" : "medical-outline"}
             size={24}
             color={
               colors.white

@@ -1,8 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   ActivityIndicator,
   Image,
   Pressable,
@@ -31,7 +34,23 @@ interface Tratamiento {
 }
 
 export default function TreatmentsScreen() {
+  const keyboardFields = useRef<(TextInput | null)[]>([]);
+
   const [search, setSearch] = useState("");
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+
+  useEffect(() => {
+    if (keyboardVisible) {
+      scrollRef.current?.scrollTo({ y: 0, animated: false });
+    }
+  }, [keyboardVisible]);
 
   const [
     menuVisible,
@@ -192,7 +211,11 @@ export default function TreatmentsScreen() {
         }
       />
 
-      <ScrollView
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+      <ScrollView ref={scrollRef} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={
           false
         }
@@ -200,6 +223,8 @@ export default function TreatmentsScreen() {
           styles.content
         }
       >
+        {!keyboardVisible && (
+          <>
         <HomeHeader
           onMenuPress={() =>
             setMenuVisible(
@@ -250,6 +275,8 @@ export default function TreatmentsScreen() {
             necesitás.
           </Text>
         </View>
+          </>
+        )}
 
         {/* BUSCADOR */}
         <View
@@ -277,6 +304,9 @@ export default function TreatmentsScreen() {
             style={
               styles.searchInput
             }
+          ref={(input) => { keyboardFields.current[0] = input; }}
+          returnKeyType="search"
+          onSubmitEditing={Keyboard.dismiss}
           />
         </View>
 
@@ -496,6 +526,7 @@ export default function TreatmentsScreen() {
           </>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

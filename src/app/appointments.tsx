@@ -1,6 +1,7 @@
 import { useFocusEffect, useRouter } from "expo-router";
 
 import { useCallback, useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   ActivityIndicator,
@@ -34,8 +35,9 @@ interface Cita {
 
 export default function AppointmentsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
-  const { usuario } = useAuth();
+  const { usuario, obtenerIdUsuario } = useAuth();
 
   const [citas, setCitas] = useState<Cita[]>([]);
 
@@ -66,18 +68,7 @@ export default function AppointmentsScreen() {
         return;
       }
 
-      const idUsuario = usuario.id_usuario;
-
-      if (!idUsuario) {
-        setCitas([]);
-
-        setMensaje({
-          tipo: "error",
-          texto: "No fue posible identificar al usuario.",
-        });
-
-        return;
-      }
+      const idUsuario = await obtenerIdUsuario();
 
       const data = await obtenerCitasPorUsuario(idUsuario);
 
@@ -116,7 +107,7 @@ export default function AppointmentsScreen() {
     } finally {
       setCargando(false);
     }
-  }, [usuario]);
+  }, [usuario, obtenerIdUsuario]);
 
   useFocusEffect(
     useCallback(() => {
@@ -273,7 +264,7 @@ export default function AppointmentsScreen() {
     : "Usuario";
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top + 12 }]}>
       {/* MODAL */}
       <Modal
         visible={citaACancelar !== null}
