@@ -1,9 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import {
+  Keyboard,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,10 +18,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors } from "../../constants/theme";
-import { useAuth } from "../../context/AuthContext";
-import { API_URL } from "../../services/api";
+import { mensajeErrorFirebase, useAuth } from "../../context/AuthContext";
 
 export default function LoginScreen() {
+  const keyboardFields = useRef<(TextInput | null)[]>([]);
+
   const { login } = useAuth();
 
   const [correo, setCorreo] =
@@ -82,105 +86,9 @@ export default function LoginScreen() {
     try {
       setCargando(true);
 
-      const response =
-        await fetch(
-          `${API_URL}/usuarios/login`,
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body:
-              JSON.stringify({
-                correo:
-                  correoLimpio,
-                password,
-              }),
-          }
-        );
-
-      const data =
-        await response
-          .json()
-          .catch(
-            () => ({})
-          );
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-          data.mensaje ||
-          "Credenciales incorrectas."
-        );
-      }
-
-      if (!data.usuario) {
-        throw new Error(
-          "El servidor no devolvió los datos del usuario."
-        );
-      }
-
-      // -------------------------------------
-      // SOLO PACIENTES EN LA APP MÓVIL
-      // -------------------------------------
-      const rol =
-        data.usuario.rol
-          ?.toLowerCase();
-
-      if (
-        rol !==
-        "paciente"
-      ) {
-        throw new Error(
-          "Esta aplicación está disponible únicamente para pacientes."
-        );
-      }
-
-      const estado =
-        data.usuario.estado
-          ?.toLowerCase();
-
-      if (
-        estado &&
-        estado !==
-        "activo"
-      ) {
-        throw new Error(
-          "Tu cuenta se encuentra inactiva."
-        );
-      }
-
-      // -------------------------------------
-      // GUARDAR SESIÓN
-      // -------------------------------------
-      console.log(
-        "Foto recibida al iniciar sesión:",
-        data.usuario.imagen_perfil
-          ? `Existe (${data.usuario.imagen_perfil.length} caracteres)`
-          : "No se recibió ninguna foto"
-      );
-
-      await login(data.usuario);
-      
-      await login(
-        data.usuario
-      );
-
-      setExito(
-        `¡Bienvenido/a, ${data.usuario.nombre}!`
-      );
-
-      setTimeout(
-        () => {
-          router.replace(
-            "/home"
-          );
-        },
-        900
-      );
+      await login(correoLimpio, password);
+      setExito("¡Sesión iniciada!");
+      router.replace("/home");
     } catch (error) {
       console.error(
         "Error al iniciar sesión:",
@@ -188,9 +96,7 @@ export default function LoginScreen() {
       );
 
       setError(
-        error instanceof Error
-          ? error.message
-          : "No fue posible iniciar sesión."
+        mensajeErrorFirebase(error)
       );
     } finally {
       setCargando(false);
@@ -209,6 +115,10 @@ export default function LoginScreen() {
         "bottom",
       ]}
     >
+  <KeyboardAvoidingView
+  style={{ flex: 1 }}
+  behavior={Platform.OS === "ios" ? "padding" : "height"}
+  >
       <ScrollView
         showsVerticalScrollIndicator={
           false
@@ -217,6 +127,7 @@ export default function LoginScreen() {
           styles.content
         }
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         <Image
           source={require(
@@ -354,6 +265,10 @@ export default function LoginScreen() {
                   false
                 }
                 keyboardType="email-address"
+              ref={(input) => { keyboardFields.current[0] = input; }}
+              returnKeyType="next"
+              blurOnSubmit={false}
+              onSubmitEditing={() => keyboardFields.current[1]?.focus()}
               />
             </View>
           </View>
@@ -400,6 +315,9 @@ export default function LoginScreen() {
                   styles.searchInput
                 }
                 secureTextEntry
+              ref={(input) => { keyboardFields.current[1] = input; }}
+              returnKeyType="done"
+              onSubmitEditing={Keyboard.dismiss}
               />
             </View>
           </View>
@@ -463,11 +381,12 @@ export default function LoginScreen() {
                 }
               >
                 Registrate
+                </Text>
               </Text>
-            </Text>
-          </Pressable>
-        </View>
-      </ScrollView>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

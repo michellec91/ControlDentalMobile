@@ -66,7 +66,7 @@ export default function HomeScreen() {
     setErrorCita,
   ] = useState(false);
 
-  const { usuario } =
+  const { usuario, obtenerIdUsuario } =
     useAuth();
 
   const router =
@@ -89,8 +89,14 @@ export default function HomeScreen() {
             false
           );
 
-          const idUsuario =
-            usuario?.id_usuario;
+          let idUsuario = usuario?.id_usuario || 0;
+          if (usuario && !idUsuario) {
+            try {
+              idUsuario = await obtenerIdUsuario();
+            } catch (error) {
+              console.warn("No se pudieron vincular las citas del paciente:", error);
+            }
+          }
 
           if (!idUsuario) {
             if (activo) {
@@ -221,7 +227,7 @@ export default function HomeScreen() {
       return () => {
         activo = false;
       };
-    }, [usuario])
+    }, [usuario, obtenerIdUsuario])
   );
 
   return (

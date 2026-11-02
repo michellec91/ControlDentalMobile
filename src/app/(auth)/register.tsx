@@ -1,8 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Image,
   Pressable,
   ScrollView,
@@ -15,9 +18,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors } from "../../constants/theme";
-import { API_URL } from "../../services/api";
+import { mensajeErrorFirebase, useAuth } from "../../context/AuthContext";
 
 export default function RegisterScreen() {
+  const keyboardFields = useRef<(TextInput | null)[]>([]);
+
+  const { registrar } = useAuth();
   const [
     nombre,
     setNombre,
@@ -164,64 +170,16 @@ export default function RegisterScreen() {
       try {
         setCargando(true);
 
-        const response =
-          await fetch(
-            `${API_URL}/usuarios/register`,
-            {
-              method:
-                "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-
-              body:
-                JSON.stringify({
-                  nombre:
-                    nombreLimpio,
-
-                  apellido:
-                    apellidoLimpio,
-
-                  correo:
-                    correoLimpio,
-
-                  password,
-
-                  telefono:
-                    telefonoLimpio,
-                }),
-            }
-          );
-
-        const data =
-          await response
-            .json()
-            .catch(
-              () => ({})
-            );
-
-        if (!response.ok) {
-          throw new Error(
-            data.error ||
-              data.mensaje ||
-              "No se pudo registrar el usuario."
-          );
-        }
-
-        setExito(
-          "¡Cuenta creada correctamente! Ahora puedes iniciar sesión."
-        );
-
-        setTimeout(
-          () => {
-            router.replace(
-              "/(auth)/login"
-            );
-          },
-          1200
-        );
+        await registrar({
+          nombre: nombreLimpio,
+          apellido: apellidoLimpio,
+          correo: correoLimpio,
+          password,
+          telefono: telefonoLimpio,
+        });
+        setExito("¡Cuenta creada correctamente!");
+        // Firebase inicia sesión automáticamente al registrar.
+        router.replace("/home");
       } catch (error) {
         console.error(
           "Error al registrar usuario:",
@@ -229,9 +187,7 @@ export default function RegisterScreen() {
         );
 
         setError(
-          error instanceof Error
-            ? error.message
-            : "No fue posible crear la cuenta."
+          mensajeErrorFirebase(error)
         );
       } finally {
         setCargando(false);
@@ -250,6 +206,10 @@ export default function RegisterScreen() {
         "bottom",
       ]}
     >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
       <ScrollView
         showsVerticalScrollIndicator={
           false
@@ -258,7 +218,23 @@ export default function RegisterScreen() {
           styles.content
         }
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
+        <Pressable
+          style={styles.brandHeader}
+          accessibilityRole="button"
+          accessibilityLabel="Volver a iniciar sesión"
+          onPress={() => router.replace("/(auth)/login")}
+        >
+          <View style={styles.brandBackIcon}>
+            <Ionicons name="arrow-back" size={24} color={colors.white} />
+          </View>
+          <View style={styles.brandHeaderText}>
+            <Text style={styles.brandName}>Control Dental</Text>
+            <Text style={styles.clinicName}>CLÍNICA DENTAL SONRISAS</Text>
+          </View>
+        </Pressable>
+
         <Image
           source={require(
             "../../../assets/images/treatments.jpg"
@@ -390,6 +366,10 @@ export default function RegisterScreen() {
                 style={
                   styles.searchInput
                 }
+              ref={(input) => { keyboardFields.current[0] = input; }}
+              returnKeyType="next"
+              blurOnSubmit={false}
+              onSubmitEditing={() => keyboardFields.current[1]?.focus()}
               />
             </View>
           </View>
@@ -435,6 +415,10 @@ export default function RegisterScreen() {
                 style={
                   styles.searchInput
                 }
+              ref={(input) => { keyboardFields.current[1] = input; }}
+              returnKeyType="next"
+              blurOnSubmit={false}
+              onSubmitEditing={() => keyboardFields.current[2]?.focus()}
               />
             </View>
           </View>
@@ -483,6 +467,10 @@ export default function RegisterScreen() {
                   false
                 }
                 keyboardType="email-address"
+              ref={(input) => { keyboardFields.current[2] = input; }}
+              returnKeyType="next"
+              blurOnSubmit={false}
+              onSubmitEditing={() => keyboardFields.current[3]?.focus()}
               />
             </View>
           </View>
@@ -529,6 +517,10 @@ export default function RegisterScreen() {
                   styles.searchInput
                 }
                 secureTextEntry
+              ref={(input) => { keyboardFields.current[3] = input; }}
+              returnKeyType="next"
+              blurOnSubmit={false}
+              onSubmitEditing={() => keyboardFields.current[4]?.focus()}
               />
             </View>
           </View>
@@ -575,6 +567,10 @@ export default function RegisterScreen() {
                   styles.searchInput
                 }
                 secureTextEntry
+              ref={(input) => { keyboardFields.current[4] = input; }}
+              returnKeyType="next"
+              blurOnSubmit={false}
+              onSubmitEditing={() => keyboardFields.current[5]?.focus()}
               />
             </View>
           </View>
@@ -621,6 +617,9 @@ export default function RegisterScreen() {
                   styles.searchInput
                 }
                 keyboardType="phone-pad"
+              ref={(input) => { keyboardFields.current[5] = input; }}
+              returnKeyType="done"
+              onSubmitEditing={Keyboard.dismiss}
               />
             </View>
           </View>
@@ -689,6 +688,7 @@ export default function RegisterScreen() {
           </Pressable>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -707,6 +707,40 @@ const styles =
       paddingTop: 12,
       paddingBottom:
         40,
+    },
+
+    brandHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 24,
+    },
+
+    brandBackIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      backgroundColor: colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    brandHeaderText: {
+      flex: 1,
+      marginLeft: 12,
+    },
+
+    brandName: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+    },
+
+    clinicName: {
+      fontSize: 10,
+      color: colors.primary,
+      fontWeight: "700",
+      marginTop: 2,
+      letterSpacing: 0.4,
     },
 
     heroImage: {

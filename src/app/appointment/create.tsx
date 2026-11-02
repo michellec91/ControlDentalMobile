@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   ActivityIndicator,
@@ -49,8 +50,9 @@ interface Horario {
 
 export default function CreateAppointmentScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
-  const { usuario } = useAuth();
+  const { usuario, obtenerIdUsuario } = useAuth();
 
   const hoy = new Date();
   const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(
@@ -330,12 +332,6 @@ export default function CreateAppointmentScreen() {
       return;
     }
 
-    const idUsuario = usuario.id_usuario;
-    if (!idUsuario) {
-      setError("No fue posible identificar al usuario.");
-      return;
-    }
-
     if (!fecha) {
       setError("Por favor selecciona una fecha.");
       return;
@@ -360,8 +356,9 @@ export default function CreateAppointmentScreen() {
 
     try {
       setCargando(true);
+      const idUsuario = await obtenerIdUsuario();
       const payload = {
-        id_usuario: Number(idUsuario),
+        id_usuario: idUsuario,
         id_tratamiento: tratamientoSeleccionado.id_tratamiento,
         fecha,
         hora: horaBD,
@@ -408,7 +405,7 @@ export default function CreateAppointmentScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[styles.container, { paddingTop: insets.top + 12 }]}
       keyboardShouldPersistTaps="handled"
     >
       {/* NAVEGACIÓN */}

@@ -1,8 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Modal,
   Pressable,
   ScrollView,
@@ -16,7 +19,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
-import { API_URL } from "../services/api";
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
+import { firebaseAuth } from "../services/firebase";
+import { mensajeErrorFirebase } from "../context/AuthContext";
 
 type MensajeModal = {
   titulo: string;
@@ -29,6 +34,8 @@ type MensajeModal = {
 };
 
 export default function ChangePasswordScreen() {
+  const keyboardFields = useRef<(TextInput | null)[]>([]);
+
   const {
     usuario,
     logout,
@@ -165,58 +172,15 @@ export default function ChangePasswordScreen() {
         return;
       }
 
-      const idUsuario =
-        usuario.id_usuario;
-
-      if (!idUsuario) {
-        abrirMensajePersonalizado(
-          "Error",
-          "No se encontró el ID del usuario. Cierra sesión e inicia sesión nuevamente.",
-          "error"
-        );
-
-        return;
-      }
-
       try {
         setGuardando(true);
-
-        const respuesta =
-          await fetch(
-            `${API_URL}/usuarios/${idUsuario}/change-password`,
-            {
-              method:
-                "PUT",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-
-              body:
-                JSON.stringify({
-                  contrasenaActual,
-                  contrasenaNueva,
-                }),
-            }
-          );
-
-        const datos =
-          await respuesta
-            .json()
-            .catch(
-              () => ({})
-            );
-
-        if (
-          !respuesta.ok
-        ) {
-          throw new Error(
-            datos.error ||
-            datos.mensaje ||
-            "No se pudo cambiar la contraseña."
-          );
-        }
+        const fb = firebaseAuth.currentUser;
+        if (!fb?.email) throw new Error("Inicia sesión nuevamente para continuar.");
+        await reauthenticateWithCredential(
+          fb,
+          EmailAuthProvider.credential(fb.email, contrasenaActual)
+        );
+        await updatePassword(fb, contrasenaNueva);
 
         // Limpiar campos
         setContrasenaActual(
@@ -251,9 +215,7 @@ export default function ChangePasswordScreen() {
 
         abrirMensajePersonalizado(
           "No se pudo cambiar la contraseña",
-          error instanceof Error
-            ? error.message
-            : "Ocurrió un error al cambiar la contraseña.",
+          mensajeErrorFirebase(error),
           "error"
         );
       } finally {
@@ -301,11 +263,16 @@ export default function ChangePasswordScreen() {
         "bottom",
       ]}
     >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
       <ScrollView
         contentContainerStyle={
           styles.content
         }
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={
           false
         }
@@ -392,6 +359,10 @@ export default function ChangePasswordScreen() {
             autoCorrect={
               false
             }
+          ref={(input) => { keyboardFields.current[0] = input; }}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => keyboardFields.current[1]?.focus()}
           />
 
           {/* NUEVA */}
@@ -424,6 +395,10 @@ export default function ChangePasswordScreen() {
             autoCorrect={
               false
             }
+          ref={(input) => { keyboardFields.current[1] = input; }}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => keyboardFields.current[2]?.focus()}
           />
 
           {/* CONFIRMAR */}
@@ -457,6 +432,9 @@ export default function ChangePasswordScreen() {
             autoCorrect={
               false
             }
+          ref={(input) => { keyboardFields.current[2] = input; }}
+          returnKeyType="done"
+          onSubmitEditing={Keyboard.dismiss}
           />
 
           {/* MOSTRAR / OCULTAR */}
@@ -519,6 +497,7 @@ export default function ChangePasswordScreen() {
           </Pressable>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* MODAL */}
       <Modal

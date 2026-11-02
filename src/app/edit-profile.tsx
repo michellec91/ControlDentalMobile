@@ -1,8 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Modal,
   Pressable,
   ScrollView,
@@ -29,6 +32,8 @@ type MensajeModal = {
 };
 
 export default function EditProfileScreen() {
+  const keyboardFields = useRef<(TextInput | null)[]>([]);
+
   const {
     usuario,
     actualizarUsuario,
@@ -438,11 +443,16 @@ export default function EditProfileScreen() {
         "bottom",
       ]}
     >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
       <ScrollView
         contentContainerStyle={
           styles.content
         }
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={
           false
         }
@@ -519,6 +529,10 @@ export default function EditProfileScreen() {
               setNombre
             }
             autoCapitalize="words"
+          ref={(input) => { keyboardFields.current[0] = input; }}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => keyboardFields.current[1]?.focus()}
           />
 
           {/* APELLIDO */}
@@ -545,6 +559,10 @@ export default function EditProfileScreen() {
               setApellido
             }
             autoCapitalize="words"
+          ref={(input) => { keyboardFields.current[1] = input; }}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => keyboardFields.current[2]?.focus()}
           />
 
           {/* CORREO */}
@@ -573,6 +591,10 @@ export default function EditProfileScreen() {
             autoCorrect={
               false
             }
+          ref={(input) => { keyboardFields.current[2] = input; }}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => keyboardFields.current[3]?.focus()}
           />
 
           {/* TELÉFONO */}
@@ -599,6 +621,9 @@ export default function EditProfileScreen() {
               setTelefono
             }
             keyboardType="phone-pad"
+          ref={(input) => { keyboardFields.current[3] = input; }}
+          returnKeyType="done"
+          onSubmitEditing={Keyboard.dismiss}
           />
 
           {/* GUARDAR */}
@@ -627,6 +652,7 @@ export default function EditProfileScreen() {
           </Pressable>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* MODAL */}
       <Modal
