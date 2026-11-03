@@ -179,7 +179,6 @@ export default function RegisterScreen() {
         });
         setExito("¡Cuenta creada correctamente!");
         // Firebase inicia sesión automáticamente al registrar.
-        router.replace("/home");
       } catch (error) {
         console.error(
           "Error al registrar usuario:",

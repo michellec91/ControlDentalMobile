@@ -23,7 +23,7 @@ import { mensajeErrorFirebase, useAuth } from "../../context/AuthContext";
 export default function LoginScreen() {
   const keyboardFields = useRef<(TextInput | null)[]>([]);
 
-  const { login } = useAuth();
+  const { login, loginConGoogle } = useAuth();
 
   const [correo, setCorreo] =
     useState("");
@@ -88,7 +88,6 @@ export default function LoginScreen() {
 
       await login(correoLimpio, password);
       setExito("¡Sesión iniciada!");
-      router.replace("/home");
     } catch (error) {
       console.error(
         "Error al iniciar sesión:",
@@ -98,6 +97,37 @@ export default function LoginScreen() {
       setError(
         mensajeErrorFirebase(error)
       );
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError("");
+    setExito("");
+
+    if (Platform.OS !== "web") {
+      setError(
+        "El inicio de sesión con Google está disponible por ahora únicamente en la versión web."
+      );
+      return;
+    }
+
+    try {
+      setCargando(true);
+
+      await loginConGoogle();
+
+      setExito("¡Sesión iniciada con Google!");
+
+    } catch (error) {
+      console.error(
+        "Error de autenticación con Google:",
+        error
+      );
+
+      setError(mensajeErrorFirebase(error));
+
     } finally {
       setCargando(false);
     }
@@ -115,272 +145,292 @@ export default function LoginScreen() {
         "bottom",
       ]}
     >
-  <KeyboardAvoidingView
-  style={{ flex: 1 }}
-  behavior={Platform.OS === "ios" ? "padding" : "height"}
-  >
-      <ScrollView
-        showsVerticalScrollIndicator={
-          false
-        }
-        contentContainerStyle={
-          styles.content
-        }
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <Image
-          source={require(
-            "../../../assets/images/treatments.jpg"
-          )}
-          style={
-            styles.heroImage
+        <ScrollView
+          showsVerticalScrollIndicator={
+            false
           }
-          resizeMode="cover"
-        />
-
-        <View
-          style={
-            styles.header
+          contentContainerStyle={
+            styles.content
           }
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
-          <Text
-            style={
-              styles.eyebrow
-            }
-          >
-            CONTROL DENTAL
-          </Text>
-
-          <Text
-            style={
-              styles.title
-            }
-          >
-            Iniciar sesión
-          </Text>
-
-          <Text
-            style={
-              styles.subtitle
-            }
-          >
-            Ingresá tus
-            credenciales para
-            acceder a tus citas
-            y tratamientos.
-          </Text>
-        </View>
-
-        {error ? (
-          <View
-            style={
-              styles.errorContainer
-            }
-          >
-            <Ionicons
-              name="alert-circle-outline"
-              size={18}
-              color="#D9534F"
-            />
-
-            <Text
-              style={
-                styles.errorText
-              }
-            >
-              {error}
-            </Text>
-          </View>
-        ) : null}
-
-        {exito ? (
-          <View
-            style={
-              styles.successContainer
-            }
-          >
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={18}
-              color="#2E7D32"
-            />
-
-            <Text
-              style={
-                styles.successText
-              }
-            >
-              {exito}
-            </Text>
-          </View>
-        ) : null}
-
-        <View
-          style={
-            styles.formContainer
-          }
-        >
-          {/* CORREO */}
-          <View
-            style={
-              styles.inputGroup
-            }
-          >
-            <Text
-              style={
-                styles.label
-              }
-            >
-              Correo electrónico
-            </Text>
-
-            <View
-              style={
-                styles.searchContainer
-              }
-            >
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color={
-                  colors.textSecondary
-                }
-              />
-
-              <TextInput
-                value={correo}
-                onChangeText={
-                  setCorreo
-                }
-                placeholder="Ingresá tu correo"
-                placeholderTextColor={
-                  colors.textSecondary
-                }
-                style={
-                  styles.searchInput
-                }
-                autoCapitalize="none"
-                autoCorrect={
-                  false
-                }
-                keyboardType="email-address"
-              ref={(input) => { keyboardFields.current[0] = input; }}
-              returnKeyType="next"
-              blurOnSubmit={false}
-              onSubmitEditing={() => keyboardFields.current[1]?.focus()}
-              />
-            </View>
-          </View>
-
-          {/* CONTRASEÑA */}
-          <View
-            style={
-              styles.inputGroup
-            }
-          >
-            <Text
-              style={
-                styles.label
-              }
-            >
-              Contraseña
-            </Text>
-
-            <View
-              style={
-                styles.searchContainer
-              }
-            >
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color={
-                  colors.textSecondary
-                }
-              />
-
-              <TextInput
-                value={
-                  password
-                }
-                onChangeText={
-                  setPassword
-                }
-                placeholder="Ingresá tu contraseña"
-                placeholderTextColor={
-                  colors.textSecondary
-                }
-                style={
-                  styles.searchInput
-                }
-                secureTextEntry
-              ref={(input) => { keyboardFields.current[1] = input; }}
-              returnKeyType="done"
-              onSubmitEditing={Keyboard.dismiss}
-              />
-            </View>
-          </View>
-
-          {/* BOTÓN */}
-          <Pressable
-            style={[
-              styles.button,
-              cargando &&
-              styles.buttonDisabled,
-            ]}
-            onPress={
-              handleLogin
-            }
-            disabled={
-              cargando
-            }
-          >
-            <Text
-              style={
-                styles.buttonText
-              }
-            >
-              {cargando
-                ? "Iniciando sesión..."
-                : "Entrar"}
-            </Text>
-
-            {!cargando && (
-              <Ionicons
-                name="arrow-forward"
-                size={18}
-                color={
-                  colors.white
-                }
-              />
+          <Image
+            source={require(
+              "../../../assets/images/treatments.jpg"
             )}
-          </Pressable>
-
-          {/* REGISTRO */}
-          <Pressable
             style={
-              styles.linkContainer
+              styles.heroImage
             }
-            onPress={() =>
-              router.push(
-                "/(auth)/register"
-              )
+            resizeMode="cover"
+          />
+
+          <View
+            style={
+              styles.header
             }
           >
             <Text
               style={
-                styles.linkText
+                styles.eyebrow
               }
             >
-              ¿No tenés
-              cuenta?{" "}
+              CONTROL DENTAL
+            </Text>
+
+            <Text
+              style={
+                styles.title
+              }
+            >
+              Iniciar sesión
+            </Text>
+
+            <Text
+              style={
+                styles.subtitle
+              }
+            >
+              Ingresá tus
+              credenciales para
+              acceder a tus citas
+              y tratamientos.
+            </Text>
+          </View>
+
+          {error ? (
+            <View
+              style={
+                styles.errorContainer
+              }
+            >
+              <Ionicons
+                name="alert-circle-outline"
+                size={18}
+                color="#D9534F"
+              />
+
               <Text
                 style={
-                  styles.linkBold
+                  styles.errorText
                 }
               >
-                Registrate
+                {error}
+              </Text>
+            </View>
+          ) : null}
+
+          {exito ? (
+            <View
+              style={
+                styles.successContainer
+              }
+            >
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={18}
+                color="#2E7D32"
+              />
+
+              <Text
+                style={
+                  styles.successText
+                }
+              >
+                {exito}
+              </Text>
+            </View>
+          ) : null}
+
+          <View
+            style={
+              styles.formContainer
+            }
+          >
+            {/* CORREO */}
+            <View
+              style={
+                styles.inputGroup
+              }
+            >
+              <Text
+                style={
+                  styles.label
+                }
+              >
+                Correo electrónico
+              </Text>
+
+              <View
+                style={
+                  styles.searchContainer
+                }
+              >
+                <Ionicons
+                  name="mail-outline"
+                  size={20}
+                  color={
+                    colors.textSecondary
+                  }
+                />
+
+                <TextInput
+                  value={correo}
+                  onChangeText={
+                    setCorreo
+                  }
+                  placeholder="Ingresá tu correo"
+                  placeholderTextColor={
+                    colors.textSecondary
+                  }
+                  style={
+                    styles.searchInput
+                  }
+                  autoCapitalize="none"
+                  autoCorrect={
+                    false
+                  }
+                  keyboardType="email-address"
+                  ref={(input) => { keyboardFields.current[0] = input; }}
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => keyboardFields.current[1]?.focus()}
+                />
+              </View>
+            </View>
+
+            {/* CONTRASEÑA */}
+            <View
+              style={
+                styles.inputGroup
+              }
+            >
+              <Text
+                style={
+                  styles.label
+                }
+              >
+                Contraseña
+              </Text>
+
+              <View
+                style={
+                  styles.searchContainer
+                }
+              >
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={20}
+                  color={
+                    colors.textSecondary
+                  }
+                />
+
+                <TextInput
+                  value={
+                    password
+                  }
+                  onChangeText={
+                    setPassword
+                  }
+                  placeholder="Ingresá tu contraseña"
+                  placeholderTextColor={
+                    colors.textSecondary
+                  }
+                  style={
+                    styles.searchInput
+                  }
+                  secureTextEntry
+                  ref={(input) => { keyboardFields.current[1] = input; }}
+                  returnKeyType="done"
+                  onSubmitEditing={Keyboard.dismiss}
+                />
+              </View>
+            </View>
+
+            {/* BOTÓN */}
+            <Pressable
+              style={[
+                styles.button,
+                cargando &&
+                styles.buttonDisabled,
+              ]}
+              onPress={
+                handleLogin
+              }
+              disabled={
+                cargando
+              }
+            >
+              <Text
+                style={
+                  styles.buttonText
+                }
+              >
+                {cargando
+                  ? "Iniciando sesión..."
+                  : "Entrar"}
+              </Text>
+
+              {!cargando && (
+                <Ionicons
+                  name="arrow-forward"
+                  size={18}
+                  color={
+                    colors.white
+                  }
+                />
+              )}
+            </Pressable>
+
+            {/* INICIAR SESIÓN CON GOOGLE */}
+            <Pressable
+              style={[
+                styles.googleButton,
+                cargando && styles.buttonDisabled,
+              ]}
+              onPress={handleGoogleLogin}
+              disabled={cargando}
+            >
+              <Ionicons
+                name="logo-google"
+                size={22}
+                color="#4285F4"
+              />
+
+              <Text style={styles.googleButtonText}>
+                Continuar con Google
+              </Text>
+            </Pressable>
+
+            {/* REGISTRO */}
+            <Pressable
+              style={
+                styles.linkContainer
+              }
+              onPress={() =>
+                router.push(
+                  "/(auth)/register"
+                )
+              }
+            >
+              <Text
+                style={
+                  styles.linkText
+                }
+              >
+                ¿No tenés
+                cuenta?{" "}
+                <Text
+                  style={
+                    styles.linkBold
+                  }
+                >
+                  Registrate
                 </Text>
               </Text>
             </Pressable>
@@ -584,5 +634,23 @@ const styles =
       fontWeight:
         "600",
       flex: 1,
+    },
+
+    googleButton: {
+      backgroundColor: "#FFFFFF",
+      borderWidth: 1,
+      borderColor: "#DADCE0",
+      borderRadius: 14,
+      paddingVertical: 15,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 12,
+    },
+
+    googleButtonText: {
+      color: "#202124",
+      fontSize: 15,
+      fontWeight: "600",
     },
   });

@@ -2,9 +2,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getApp, getApps, initializeApp } from "firebase/app";
 import {
   browserLocalPersistence,
+  inMemoryPersistence,
   getAuth,
-  getReactNativePersistence,
   initializeAuth,
+  // @ts-ignore: Tipos de Firebase para React Native
+  getReactNativePersistence,
 } from "firebase/auth";
 import { Platform } from "react-native";
 
@@ -25,14 +27,24 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId
 }
 
 export const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
-
+console.log("Firebase cargado:", {
+  proyecto: firebaseApp.options.projectId,
+  claveLongitud: firebaseApp.options.apiKey?.length,
+  claveFinal: firebaseApp.options.apiKey?.slice(-4),
+});
 // Persistencia real de Firebase Auth; no se guardan contraseñas en AsyncStorage.
 export const firebaseAuth = (() => {
   try {
+    const esServidorWeb =
+      Platform.OS === "web" &&
+      typeof window === "undefined";
+
     return initializeAuth(firebaseApp, {
-      persistence: Platform.OS === "web"
-        ? browserLocalPersistence
-        : getReactNativePersistence(AsyncStorage),
+      persistence: esServidorWeb
+        ? inMemoryPersistence
+        : Platform.OS === "web"
+          ? browserLocalPersistence
+          : getReactNativePersistence(AsyncStorage),
     });
   } catch (error: unknown) {
     // Fast Refresh puede ejecutar el módulo nuevamente cuando Auth ya existe.
