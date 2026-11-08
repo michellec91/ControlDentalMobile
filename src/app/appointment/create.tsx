@@ -20,6 +20,7 @@ import {
 } from "../../services/api";
 
 import { useAuth } from "../../context/AuthContext";
+import { guardarDocumento } from "../../services/firestore";
 
 interface Tratamiento {
   id_tratamiento: number;
@@ -106,9 +107,9 @@ export default function CreateAppointmentScreen() {
       const dataTratamientos = await obtenerTratamientos();
       const tratamientosActivos = Array.isArray(dataTratamientos)
         ? dataTratamientos.filter(
-            (t: Tratamiento) =>
-              !t.estado || t.estado.toLowerCase() === "activo",
-          )
+          (t: Tratamiento) =>
+            !t.estado || t.estado.toLowerCase() === "activo",
+        )
         : [];
 
       setListaTratamientos(tratamientosActivos);
@@ -116,8 +117,8 @@ export default function CreateAppointmentScreen() {
       const dataHorarios = await obtenerHorarios();
       const horariosActivos = Array.isArray(dataHorarios)
         ? dataHorarios.filter(
-            (h: Horario) => !h.estado || h.estado.toLowerCase() === "activo",
-          )
+          (h: Horario) => !h.estado || h.estado.toLowerCase() === "activo",
+        )
         : [];
 
       setHorarios(horariosActivos);
@@ -379,6 +380,13 @@ export default function CreateAppointmentScreen() {
       }
 
       setExito("¡Solicitud de cita enviada con éxito!");
+      await guardarDocumento("citas", usuario.uid, {
+        id_usuario: idUsuario,
+        id_tratamiento: tratamientoSeleccionado.id_tratamiento,
+        fecha,
+        hora: horaBD,
+        estado: "pendiente",
+      });
       setTimeout(() => {
         router.replace("/appointments");
       }, 1000);
