@@ -2,11 +2,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getApp, getApps, initializeApp } from "firebase/app";
 import {
   browserLocalPersistence,
-  inMemoryPersistence,
   getAuth,
-  initializeAuth,
   // @ts-ignore: Tipos de Firebase para React Native
   getReactNativePersistence,
+  initializeAuth,
+  inMemoryPersistence,
 } from "firebase/auth";
 import { Platform } from "react-native";
 
@@ -19,6 +19,13 @@ const firebaseConfig = {
   messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
+
+console.log("FIREBASE DEBUG", {
+  apiKey: JSON.stringify(firebaseConfig.apiKey),
+  apiKeyLength: firebaseConfig.apiKey?.length,
+  projectId: firebaseConfig.projectId,
+  authDomain: firebaseConfig.authDomain,
+});
 
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId) {
   throw new Error(

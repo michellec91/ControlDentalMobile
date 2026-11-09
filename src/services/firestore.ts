@@ -15,7 +15,17 @@ import { firebaseApp } from "./firebase";
 // Reutilizamos la misma aplicación de Firebase que utiliza Authentication.
 export const db = getFirestore(firebaseApp);
 
-// Guarda información en una colección asociándola al usuario autenticado.
+// -----------------------------------------
+// TIPO DE TEMA
+// -----------------------------------------
+export type TemaPreferido =
+  | "light"
+  | "dark"
+  | "system";
+
+// -----------------------------------------
+// GUARDA INFORMACIÓN GENÉRICA
+// -----------------------------------------
 export async function guardarDocumento(
     coleccion: string,
     uid: string,
@@ -66,4 +76,69 @@ export async function obtenerDocumento(
         id: resultado.id,
         ...resultado.data(),
     };
+}
+
+// -----------------------------------------
+// GUARDAR PREFERENCIA DEL TEMA
+// -----------------------------------------
+export async function guardarPreferenciaTema(
+  uid: string,
+  tema: TemaPreferido
+) {
+  const referencia = doc(
+    db,
+    "preferencias_usuario",
+    uid
+  );
+
+  await setDoc(
+    referencia,
+    {
+      uid,
+      tema,
+      fechaActualizacion:
+        serverTimestamp(),
+    },
+    {
+      merge: true,
+    }
+  );
+}
+
+// -----------------------------------------
+// OBTENER PREFERENCIA DEL TEMA
+// -----------------------------------------
+export async function obtenerPreferenciaTema(
+  uid: string
+): Promise<TemaPreferido> {
+  const referencia = doc(
+    db,
+    "preferencias_usuario",
+    uid
+  );
+
+  const resultado =
+    await getDoc(referencia);
+
+  // Si todavía no existe configuración,
+  // se usa el tema del dispositivo.
+  if (!resultado.exists()) {
+    return "system";
+  }
+
+  const datos =
+    resultado.data();
+
+  const tema =
+    datos.tema;
+
+  if (
+    tema === "light" ||
+    tema === "dark" ||
+    tema === "system"
+  ) {
+    return tema;
+  }
+
+  return "system";
 }
