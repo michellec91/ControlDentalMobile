@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -164,11 +165,21 @@ export default function CompletarPerfilScreen() {
           {/* ENCABEZADO */}
           <View style={styles.header}>
             <View style={styles.iconContainer}>
-              <Ionicons
-                name="person-circle-outline"
-                size={42}
-                color={colors.primary}
-              />
+              {usuario?.imagen_perfil ? (
+                <Image
+                  source={{
+                    uri: usuario.imagen_perfil,
+                  }}
+                  style={styles.profileImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Ionicons
+                  name="person-circle-outline"
+                  size={42}
+                  color={colors.primary}
+                />
+              )}
             </View>
 
             <Text style={styles.eyebrow}>
@@ -180,8 +191,7 @@ export default function CompletarPerfilScreen() {
             </Text>
 
             <Text style={styles.subtitle}>
-              ¡Bienvenido! Antes de comenzar,
-              necesitamos algunos datos adicionales
+              ¡Bienvenido! Antes de comenzar, necesitamos algunos datos adicionales
               para crear tu perfil de paciente.
             </Text>
           </View>
@@ -407,6 +417,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 18,
+    overflow: "hidden",
+  },
+
+  profileImage: {
+    width: 82,
+    height: 82,
+    borderRadius: 41,
+    borderWidth: 2,
+    borderColor: colors.primary,
   },
 
   eyebrow: {
