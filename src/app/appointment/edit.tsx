@@ -1,5 +1,13 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -19,7 +27,9 @@ import {
   obtenerTratamientos,
 } from "../../services/api";
 
+import Header from "../../components/home/Header";
 import { useAuth } from "../../context/AuthContext";
+import { db } from "../../services/firestore";
 
 interface Tratamiento {
   id_tratamiento: number;
@@ -54,8 +64,9 @@ export default function EditAppointmentScreen() {
   const params = useLocalSearchParams();
   const { usuario } = useAuth();
 
-  // ID de la cita que se va a editar (viene por parámetros de la URL/ruta)
   const citaId = params.id || params.citaId;
+  const fechaAnterior = params.fecha as string;
+  const horaAnterior = params.hora as string;
 
   const hoy = new Date();
   const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(
@@ -93,7 +104,6 @@ export default function EditAppointmentScreen() {
       setCargandoDatos(true);
       setError("");
 
-      // 1. Cargar citas existentes
       const resCitas = await fetch(`${API_URL}/citas`);
       const dataCitas = await resCitas.json().catch(() => []);
       if (!resCitas.ok) throw new Error("No se pudieron obtener las citas.");
@@ -101,7 +111,6 @@ export default function EditAppointmentScreen() {
       const citasArray = Array.isArray(dataCitas) ? dataCitas : [];
       setCitasExistentes(citasArray);
 
-      // 2. Cargar tratamientos
       const dataTratamientos = await obtenerTratamientos();
       const tratamientosActivos = Array.isArray(dataTratamientos)
         ? dataTratamientos.filter(
@@ -111,7 +120,6 @@ export default function EditAppointmentScreen() {
         : [];
       setListaTratamientos(tratamientosActivos);
 
-      // 3. Cargar horarios
       const dataHorarios = await obtenerHorarios();
       const horariosActivos = Array.isArray(dataHorarios)
         ? dataHorarios.filter(
@@ -120,7 +128,6 @@ export default function EditAppointmentScreen() {
         : [];
       setHorarios(horariosActivos);
 
-      // 4. Buscar la cita actual a editar en la lista
       if (citaId) {
         const citaActual = citasArray.find(
           (c: Cita) => String(c.id_cita) === String(citaId),
@@ -152,7 +159,6 @@ export default function EditAppointmentScreen() {
     }
   };
 
-  // Calendario
   const diasDelMes = useMemo(() => {
     const primerDia = new Date(anioActual, mesActual, 1);
     const ultimoDia = new Date(anioActual, mesActual + 1, 0);
@@ -269,7 +275,6 @@ export default function EditAppointmentScreen() {
 
       const horaBD = `${horaDisponible}:00`;
       const ocupada = citasExistentes.some((cita) => {
-        // Excluir la cita actual que estamos editando para que no se bloquee a sí misma
         if (String(cita.id_cita) === String(citaId)) return false;
 
         const fechaCita = cita.fecha?.includes("T")
@@ -331,9 +336,10 @@ export default function EditAppointmentScreen() {
         id_tratamiento: tratamientoSeleccionado.id_tratamiento,
         fecha,
         hora: horaBD,
-        estado: "confirmada",
+        estado: "pendiente", // Forzar estado pendiente al editar
       };
 
+      // 1. Actualizar en el servidor MySQL
       const res = await fetch(`${API_URL}/citas/${citaId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -343,6 +349,33 @@ export default function EditAppointmentScreen() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(data.mensaje || "No se pudo actualizar la cita.");
+      }
+
+      // 2. Actualizar también en Firestore buscando el documento por uid y la fecha/hora anterior
+      if (usuario?.uid) {
+        const citasRef = collection(db, "citas");
+        const q = query(citasRef, where("uid", "==", usuario.uid));
+        const querySnapshot = await getDocs(q);
+
+        querySnapshot.forEach(async (documentoSnap) => {
+          const docData = documentoSnap.data();
+          const fechaDoc = docData.fecha?.split("T")[0];
+          const horaDoc = docData.hora?.slice(0, 5);
+
+          // Si coincide con la cita que estamos editando, actualizamos sus datos y estado a pendiente
+          if (
+            (!fechaAnterior || fechaDoc === fechaAnterior) &&
+            (!horaAnterior || horaDoc === horaAnterior?.slice(0, 5))
+          ) {
+            await updateDoc(doc(db, "citas", documentoSnap.id), {
+              estado: "pendiente",
+              tratamiento_nombre: tratamientoSeleccionado.nombre,
+              id_tratamiento: tratamientoSeleccionado.id_tratamiento,
+              fecha,
+              hora: horaBD,
+            });
+          }
+        });
       }
 
       setExito("¡Cita actualizada con éxito!");
@@ -374,18 +407,17 @@ export default function EditAppointmentScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 12 }]}
+      contentContainerStyle={[
+        styles.container,
+        { paddingTop: insets.top + 12 },
+      ]}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.headerNav}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
-        </TouchableOpacity>
-      </View>
+      <Header />
 
       <View style={styles.branding}>
         <View style={styles.logoBox}>
-          <Text style={styles.logoIcon}>🦷</Text>
+          <Ionicons name="medical-outline" size={26} color="#FFFFFF" />
         </View>
         <Text style={styles.brandTitle}>Control Dental</Text>
         <Text style={styles.brandSubtitle}>CLÍNICA DENTAL SONRISAS</Text>
@@ -409,7 +441,6 @@ export default function EditAppointmentScreen() {
           </View>
         ) : null}
 
-        {/* SELECTOR DE FECHA */}
         <Text style={styles.label}>Fecha</Text>
         <TouchableOpacity
           style={styles.selectorBox}
@@ -425,7 +456,6 @@ export default function EditAppointmentScreen() {
           <Text style={styles.selectorIcon}>📅</Text>
         </TouchableOpacity>
 
-        {/* SELECTOR DE TRATAMIENTO */}
         <Text style={[styles.label, { marginTop: 16 }]}>Tratamiento</Text>
         <TouchableOpacity
           style={styles.selectorBox}
@@ -445,7 +475,6 @@ export default function EditAppointmentScreen() {
           <Text style={styles.selectorIcon}>▼</Text>
         </TouchableOpacity>
 
-        {/* HORAS DISPONIBLES */}
         <Text style={[styles.label, { marginTop: 16 }]}>Hora</Text>
         {!fecha ? (
           <Text style={styles.emptyText}>Selecciona primero una fecha.</Text>
@@ -477,7 +506,6 @@ export default function EditAppointmentScreen() {
           </View>
         )}
 
-        {/* BOTÓN ACTUALIZAR */}
         <TouchableOpacity
           style={[styles.button, cargando && styles.buttonDisabled]}
           onPress={handleActualizar}
@@ -491,7 +519,6 @@ export default function EditAppointmentScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* MODAL CALENDARIO */}
       <Modal
         visible={mostrarModalCalendario}
         transparent={true}
@@ -568,7 +595,6 @@ export default function EditAppointmentScreen() {
         </View>
       </Modal>
 
-      {/* MODAL TRATAMIENTOS */}
       <Modal
         visible={mostrarModalTratamientos}
         transparent={true}
@@ -647,16 +673,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-  headerNav: {
-    width: "100%",
-    maxWidth: 430,
-    marginBottom: 16,
-  },
-  backText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#1E293B",
-  },
   branding: {
     alignItems: "center",
     marginBottom: 20,
@@ -669,9 +685,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 8,
-  },
-  logoIcon: {
-    fontSize: 28,
   },
   brandTitle: {
     fontSize: 22,

@@ -1,5 +1,12 @@
 import { useFocusEffect, useRouter } from "expo-router";
-
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { useCallback, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -13,21 +20,20 @@ import {
   View,
 } from "react-native";
 
-import { API_URL, obtenerCitasPorUsuario } from "../services/api";
-
 import { useAuth } from "../context/AuthContext";
+import { API_URL, obtenerCitasPorUsuario } from "../services/api";
+import { db } from "../services/firestore";
+
+import { Ionicons } from "@expo/vector-icons";
+import Header from "../components/home/Header";
 
 interface Cita {
   id_cita: number;
-
   id_usuario: number;
-
   paciente_nombre?: string;
   paciente_apellido?: string;
-
   id_tratamiento: number;
   tratamiento_nombre: string;
-
   fecha: string;
   hora: string;
   estado: string;
@@ -40,10 +46,8 @@ export default function AppointmentsScreen() {
   const { usuario, obtenerIdUsuario } = useAuth();
 
   const [citas, setCitas] = useState<Cita[]>([]);
-
   const [cargando, setCargando] = useState(true);
-
-  const [citaACancelar, setCitaACancelar] = useState<number | null>(null);
+  const [citaACancelar, setCitaACancelar] = useState<Cita | null>(null);
 
   const [mensaje, setMensaje] = useState<{
     tipo: "exito" | "error";
@@ -59,22 +63,18 @@ export default function AppointmentsScreen() {
     try {
       if (!usuario) {
         setCitas([]);
-
         setMensaje({
           tipo: "error",
           texto: "Debes iniciar sesión para ver tus citas.",
         });
-
         return;
       }
 
       const idUsuario = await obtenerIdUsuario();
-
       const data = await obtenerCitasPorUsuario(idUsuario);
-
       const lista = Array.isArray(data) ? data : [];
 
-      // No mostrar citas canceladas.
+      // No mostrar citas canceladas en "Mis Citas activas".
       const citasVisibles = lista.filter(
         (cita: Cita) => cita.estado?.toLowerCase().trim() !== "cancelada",
       );
@@ -82,23 +82,17 @@ export default function AppointmentsScreen() {
       // Ordenar por fecha y hora.
       citasVisibles.sort((a: Cita, b: Cita) => {
         const fechaA = `${a.fecha.split("T")[0]}T${a.hora}`;
-
         const fechaB = `${b.fecha.split("T")[0]}T${b.hora}`;
-
         return new Date(fechaA).getTime() - new Date(fechaB).getTime();
       });
 
       setCitas(citasVisibles);
-
       setMensaje(null);
     } catch (error) {
       console.error("Error al cargar citas:", error);
-
       setCitas([]);
-
       setMensaje({
         tipo: "error",
-
         texto:
           error instanceof Error
             ? error.message
@@ -118,36 +112,61 @@ export default function AppointmentsScreen() {
   // -----------------------------------------
   // CANCELAR
   // -----------------------------------------
-  const solicitarConfirmacionCancelar = (id: number) => {
-    setCitaACancelar(id);
+  const solicitarConfirmacionCancelar = (cita: Cita) => {
+    setCitaACancelar(cita);
   };
 
   const ejecutarCancelar = async () => {
-    if (citaACancelar === null) {
+    if (!citaACancelar || !usuario) {
       return;
     }
 
-    const id = citaACancelar;
-
+    const citaSeleccionada = citaACancelar;
     setCitaACancelar(null);
 
     try {
-      const res = await fetch(`${API_URL}/citas/${id}/estado`, {
-        method: "PATCH",
-
-        headers: {
-          "Content-Type": "application/json",
+      // 1. Actualizar en el backend MySQL
+      const res = await fetch(
+        `${API_URL}/citas/${citaSeleccionada.id_cita}/estado`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            estado: "Cancelada",
+          }),
         },
-
-        body: JSON.stringify({
-          estado: "Cancelada",
-        }),
-      });
+      );
 
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         throw new Error(data.error || "No se pudo cancelar la cita.");
+      }
+
+      // 2. Actualizar también en Firestore para que el historial refleje la cancelación
+      if (usuario.uid) {
+        const citasRef = collection(db, "citas");
+        const fechaLimpia = citaSeleccionada.fecha.split("T")[0];
+        const q = query(
+          citasRef,
+          where("uid", "==", usuario.uid),
+          where("fecha", "==", fechaLimpia),
+        );
+        const querySnapshot = await getDocs(q);
+
+        querySnapshot.forEach(async (documentoSnap) => {
+          const docData = documentoSnap.data();
+          // Validar hora para asegurar que modificamos exactamente la cita correcta
+          if (
+            docData.hora?.slice(0, 5) === citaSeleccionada.hora?.slice(0, 5)
+          ) {
+            await updateDoc(doc(db, "citas", documentoSnap.id), {
+              estado: "cancelada",
+            });
+          }
+        });
       }
 
       setMensaje({
@@ -160,10 +179,8 @@ export default function AppointmentsScreen() {
       setTimeout(() => setMensaje(null), 3000);
     } catch (error) {
       console.error("Error al cancelar cita:", error);
-
       setMensaje({
         tipo: "error",
-
         texto:
           error instanceof Error
             ? error.message
@@ -198,7 +215,6 @@ export default function AppointmentsScreen() {
     }
 
     const [horas, minutos] = hora.slice(0, 5).split(":");
-
     const numeroHora = Number(horas);
 
     if (numeroHora === 0) {
@@ -222,21 +238,10 @@ export default function AppointmentsScreen() {
   const formatearEstado = (estado: string) => {
     const valor = estado?.toLowerCase().trim();
 
-    if (valor === "pendiente") {
-      return "Pendiente";
-    }
-
-    if (valor === "confirmada") {
-      return "Confirmada";
-    }
-
-    if (valor === "completada") {
-      return "Completada";
-    }
-
-    if (valor === "cancelada") {
-      return "Cancelada";
-    }
+    if (valor === "pendiente") return "Pendiente";
+    if (valor === "confirmada") return "Confirmada";
+    if (valor === "completada") return "Completada";
+    if (valor === "cancelada") return "Cancelada";
 
     return estado || "-";
   };
@@ -244,17 +249,9 @@ export default function AppointmentsScreen() {
   const obtenerEstiloEstado = (estado: string) => {
     const valor = estado?.toLowerCase().trim();
 
-    if (valor === "pendiente") {
-      return styles.statusPending;
-    }
-
-    if (valor === "confirmada") {
-      return styles.statusConfirmed;
-    }
-
-    if (valor === "completada") {
-      return styles.statusCompleted;
-    }
+    if (valor === "pendiente") return styles.statusPending;
+    if (valor === "confirmada") return styles.statusConfirmed;
+    if (valor === "completada") return styles.statusCompleted;
 
     return styles.statusDefault;
   };
@@ -264,7 +261,12 @@ export default function AppointmentsScreen() {
     : "Usuario";
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top + 12 }]}>
+    <ScrollView
+      contentContainerStyle={[
+        styles.container,
+        { paddingTop: insets.top + 12 },
+      ]}
+    >
       {/* MODAL */}
       <Modal
         visible={citaACancelar !== null}
@@ -275,9 +277,7 @@ export default function AppointmentsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <Text style={styles.modalIcon}>⚠️</Text>
-
             <Text style={styles.modalTitle}>¿Cancelar cita?</Text>
-
             <Text style={styles.modalText}>
               ¿Estás seguro de que deseas cancelar esta cita?
             </Text>
@@ -301,40 +301,14 @@ export default function AppointmentsScreen() {
         </View>
       </Modal>
 
-      {/* NAVEGACIÓN */}
-      <View style={styles.headerNav}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
-        </TouchableOpacity>
+      <Header />
 
-        <View style={styles.iconGroup}>
-          <TouchableOpacity onPress={() => router.push("/home")}>
-            <Text style={styles.iconText}>🏠</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => router.push("/profile")}>
-            <Text
-              style={[
-                styles.iconText,
-                {
-                  marginLeft: 15,
-                },
-              ]}
-            >
-              👤
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* MARCA */}
       <View style={styles.branding}>
         <View style={styles.logoBox}>
-          <Text style={styles.logoIcon}>🦷</Text>
+          <Ionicons name="medical-outline" size={26} color="#FFFFFF" />
         </View>
 
         <Text style={styles.brandTitle}>Control Dental</Text>
-
         <Text style={styles.brandSubtitle}>CLÍNICA DENTAL SONRISAS</Text>
       </View>
 
@@ -345,7 +319,6 @@ export default function AppointmentsScreen() {
           {citas.length > 0 ? "Tus citas:" : "Aquí aparecerán tus citas."}
         </Text>
 
-        {/* MENSAJES */}
         {mensaje ? (
           <View
             style={
@@ -363,7 +336,6 @@ export default function AppointmentsScreen() {
           </View>
         ) : null}
 
-        {/* CITAS */}
         {cargando ? (
           <ActivityIndicator
             size="large"
@@ -375,7 +347,6 @@ export default function AppointmentsScreen() {
         ) : citas.length > 0 ? (
           citas.map((cita) => {
             const estado = cita.estado?.toLowerCase().trim();
-
             const puedeModificar =
               estado === "pendiente" || estado === "confirmada";
 
@@ -383,7 +354,6 @@ export default function AppointmentsScreen() {
               <View key={cita.id_cita} style={styles.appointmentCard}>
                 <View style={styles.dateHeader}>
                   <Text style={styles.calendarIcon}>📅</Text>
-
                   <Text style={styles.dateText}>
                     {formatearFecha(cita.fecha)}
                   </Text>
@@ -396,13 +366,11 @@ export default function AppointmentsScreen() {
                 <View style={styles.divider} />
 
                 <Text style={styles.label}>Tratamiento:</Text>
-
                 <Text style={styles.valueText}>
                   🦷 {cita.tratamiento_nombre || "Tratamiento no disponible"}
                 </Text>
 
                 <Text style={styles.label}>Estado:</Text>
-
                 <Text style={obtenerEstiloEstado(cita.estado)}>
                   {estado === "pendiente"
                     ? "⏳ "
@@ -411,7 +379,6 @@ export default function AppointmentsScreen() {
                       : estado === "completada"
                         ? "✓ "
                         : ""}
-
                   {formatearEstado(cita.estado)}
                 </Text>
 
@@ -419,9 +386,7 @@ export default function AppointmentsScreen() {
                   <View style={styles.actionRow}>
                     <TouchableOpacity
                       style={styles.cancelBtn}
-                      onPress={() =>
-                        solicitarConfirmacionCancelar(cita.id_cita)
-                      }
+                      onPress={() => solicitarConfirmacionCancelar(cita)}
                     >
                       <Text style={styles.cancelBtnText}>🗑 Cancelar</Text>
                     </TouchableOpacity>
@@ -431,18 +396,12 @@ export default function AppointmentsScreen() {
                       onPress={() =>
                         router.push({
                           pathname: "/appointment/edit",
-
                           params: {
                             id: String(cita.id_cita),
-
                             fecha: cita.fecha.split("T")[0],
-
                             hora: cita.hora.slice(0, 5),
-
                             id_tratamiento: String(cita.id_tratamiento),
-
                             tratamiento: cita.tratamiento_nombre,
-
                             estado: cita.estado,
                           },
                         })
@@ -461,7 +420,6 @@ export default function AppointmentsScreen() {
           </View>
         )}
 
-        {/* ACCESOS */}
         <Text style={styles.quickAccessLabel}>Accesos rápidos:</Text>
 
         <TouchableOpacity
@@ -491,36 +449,10 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
     alignItems: "center",
   },
-
-  headerNav: {
-    width: "100%",
-    maxWidth: 430,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-
-  backText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#1E293B",
-  },
-
-  iconGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  iconText: {
-    fontSize: 20,
-  },
-
   branding: {
     alignItems: "center",
     marginBottom: 16,
   },
-
   logoBox: {
     width: 52,
     height: 52,
@@ -531,24 +463,17 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     elevation: 3,
   },
-
-  logoIcon: {
-    fontSize: 26,
-  },
-
   brandTitle: {
     fontSize: 20,
     fontWeight: "800",
     color: "#0F172A",
   },
-
   brandSubtitle: {
     fontSize: 10,
     fontWeight: "700",
     color: "#0088FF",
     letterSpacing: 0.8,
   },
-
   card: {
     width: "100%",
     maxWidth: 430,
@@ -559,20 +484,17 @@ const styles = StyleSheet.create({
     padding: 20,
     elevation: 2,
   },
-
   welcomeText: {
     fontSize: 16,
     fontWeight: "800",
     color: "#0F172A",
   },
-
   sectionSubtitle: {
     fontSize: 13,
     color: "#475569",
     marginBottom: 14,
     fontWeight: "500",
   },
-
   errorBox: {
     backgroundColor: "#FEE2E2",
     borderWidth: 1,
@@ -581,14 +503,12 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 14,
   },
-
   errorText: {
     color: "#991B1B",
     fontSize: 12,
     fontWeight: "700",
     textAlign: "center",
   },
-
   successBox: {
     backgroundColor: "#DCFCE7",
     borderWidth: 1,
@@ -597,14 +517,12 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 14,
   },
-
   successText: {
     color: "#166534",
     fontSize: 12,
     fontWeight: "700",
     textAlign: "center",
   },
-
   appointmentCard: {
     backgroundColor: "#E0F2FE",
     borderWidth: 1,
@@ -613,85 +531,72 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 14,
   },
-
   dateHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 4,
   },
-
   calendarIcon: {
     fontSize: 16,
     marginRight: 6,
   },
-
   dateText: {
     fontSize: 15,
     fontWeight: "800",
     color: "#1E293B",
   },
-
   hourText: {
     fontSize: 13,
     fontWeight: "600",
     color: "#475569",
     marginLeft: 22,
   },
-
   divider: {
     height: 1,
     backgroundColor: "#CBD5E1",
     marginVertical: 8,
   },
-
   label: {
     fontSize: 12,
     color: "#64748B",
     fontWeight: "600",
     marginTop: 4,
   },
-
   valueText: {
     fontSize: 14,
     fontWeight: "700",
     color: "#0F172A",
     marginBottom: 6,
   },
-
   statusPending: {
     fontSize: 13,
     fontWeight: "700",
     color: "#D97706",
     marginBottom: 12,
   },
-
   statusConfirmed: {
     fontSize: 13,
     fontWeight: "700",
     color: "#2563EB",
     marginBottom: 12,
   },
-
   statusCompleted: {
     fontSize: 13,
     fontWeight: "700",
     color: "#16A34A",
     marginBottom: 12,
   },
-
   statusDefault: {
     fontSize: 13,
     fontWeight: "700",
     color: "#475569",
     marginBottom: 12,
   },
-
   actionRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
     marginTop: 4,
   },
-
   cancelBtn: {
     backgroundColor: "#FEE2E2",
     paddingHorizontal: 12,
@@ -699,36 +604,30 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 8,
   },
-
   cancelBtnText: {
     color: "#DC2626",
     fontSize: 11,
     fontWeight: "700",
   },
-
   editBtn: {
     backgroundColor: "#E0F2FE",
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 10,
   },
-
   editBtnText: {
     color: "#0284C7",
     fontSize: 11,
     fontWeight: "700",
   },
-
   emptyBox: {
     padding: 20,
     alignItems: "center",
   },
-
   emptyText: {
     color: "#64748B",
     fontSize: 13,
   },
-
   quickAccessLabel: {
     fontSize: 12,
     fontWeight: "700",
@@ -736,7 +635,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginBottom: 8,
   },
-
   quickBtn: {
     borderWidth: 1,
     borderColor: "#94A3B8",
@@ -745,13 +643,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 14,
   },
-
   quickBtnText: {
     fontSize: 12,
     fontWeight: "700",
     color: "#1E293B",
   },
-
   createMainBtn: {
     borderWidth: 1,
     borderColor: "#0F172A",
@@ -760,13 +656,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 4,
   },
-
   createMainBtnText: {
     fontSize: 14,
     fontWeight: "800",
     color: "#0F172A",
   },
-
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.5)",
@@ -774,7 +668,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
   },
-
   modalCard: {
     width: "100%",
     maxWidth: 340,
@@ -784,19 +677,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 6,
   },
-
   modalIcon: {
     fontSize: 32,
     marginBottom: 8,
   },
-
   modalTitle: {
     fontSize: 18,
     fontWeight: "800",
     color: "#0F172A",
     marginBottom: 6,
   },
-
   modalText: {
     fontSize: 13,
     color: "#475569",
@@ -804,13 +694,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     lineHeight: 18,
   },
-
   modalActionRow: {
     flexDirection: "row",
     width: "100%",
   },
-
   modalBtnKeep: {
+    // @ts-ignore
     flex: 1,
     backgroundColor: "#F1F5F9",
     borderWidth: 1,
@@ -820,14 +709,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 6,
   },
-
   modalBtnKeepText: {
     color: "#475569",
     fontWeight: "700",
     fontSize: 13,
   },
-
   modalBtnConfirm: {
+    // @ts-ignore
     flex: 1,
     backgroundColor: "#DC2626",
     borderRadius: 12,
@@ -835,7 +723,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginLeft: 6,
   },
-
   modalBtnConfirmText: {
     color: "#FFFFFF",
     fontWeight: "700",

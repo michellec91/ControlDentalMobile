@@ -2,13 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 
-import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { colors } from "../../constants/theme";
 import { useAuth } from "../../context/AuthContext";
@@ -18,29 +12,19 @@ type SideMenuProps = {
   onClose: () => void;
 };
 
-export default function SideMenu({
-  visible,
-  onClose,
-}: SideMenuProps) {
+export default function SideMenu({ visible, onClose }: SideMenuProps) {
   const { logout } = useAuth();
   const router = useRouter();
 
-  const [
-    modalLogoutVisible,
-    setLogoutVisible,
-  ] = useState(false);
+  const [modalLogoutVisible, setLogoutVisible] = useState(false);
 
   // -----------------------------------------
   // NAVEGAR
   // -----------------------------------------
-  const navigateTo = (
-    route: string
-  ) => {
+  const navigateTo = (route: string) => {
     onClose();
 
-    router.push(
-      route as never
-    );
+    router.push(route as never);
   };
 
   // -----------------------------------------
@@ -49,33 +33,23 @@ export default function SideMenu({
   const handleLogout = () => {
     onClose();
 
-    setLogoutVisible(
-      true
-    );
+    setLogoutVisible(true);
   };
 
   // -----------------------------------------
   // CONFIRMAR CIERRE DE SESIÓN
   // -----------------------------------------
-  const confirmLogout =
-    async () => {
-      try {
-        setLogoutVisible(
-          false
-        );
+  const confirmLogout = async () => {
+    try {
+      setLogoutVisible(false);
 
-        await logout();
+      await logout();
 
-        router.replace(
-          "/(auth)/login"
-        );
-      } catch (error) {
-        console.error(
-          "Error al cerrar sesión:",
-          error
-        );
-      }
-    };
+      router.replace("/(auth)/login");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
 
   return (
     <>
@@ -84,318 +58,168 @@ export default function SideMenu({
         visible={visible}
         transparent
         animationType="fade"
-        onRequestClose={
-          onClose
-        }
+        onRequestClose={onClose}
       >
-        <View
-          style={
-            styles.container
-          }
-        >
+        <View style={styles.container}>
           {/* FONDO OSCURO */}
-          <Pressable
-            style={
-              styles.overlay
-            }
-            onPress={
-              onClose
-            }
-          />
+          <Pressable style={styles.overlay} onPress={onClose} />
 
           {/* PANEL */}
-          <View
-            style={
-              styles.drawer
-            }
-          >
+          <View style={styles.drawer}>
             {/* ENCABEZADO */}
-            <View
-              style={
-                styles.top
-              }
-            >
-              <View
-                style={
-                  styles.brandContainer
-                }
-              >
-                <View
-                  style={
-                    styles.logo
-                  }
-                >
+            <View style={styles.top}>
+              <View style={styles.brandContainer}>
+                <View style={styles.logo}>
                   <Ionicons
                     name="medical-outline"
                     size={26}
-                    color={
-                      colors.white
-                    }
+                    color={colors.white}
                   />
                 </View>
 
                 <View>
-                  <Text
-                    style={
-                      styles.title
-                    }
-                  >
-                    Control Dental
-                  </Text>
+                  <Text style={styles.title}>Control Dental</Text>
 
-                  <Text
-                    style={
-                      styles.subtitle
-                    }
-                  >
-                    Clínica Dental
-                    Sonrisas
-                  </Text>
+                  <Text style={styles.subtitle}>Clínica Dental Sonrisas</Text>
                 </View>
               </View>
 
-              <Pressable
-                style={
-                  styles.closeButton
-                }
-                onPress={
-                  onClose
-                }
-              >
-                <Ionicons
-                  name="close"
-                  size={24}
-                  color={
-                    colors.text
-                  }
-                />
+              <Pressable style={styles.closeButton} onPress={onClose}>
+                <Ionicons name="close" size={24} color={colors.text} />
               </Pressable>
             </View>
 
             {/* OPCIONES */}
-            <View
-              style={
-                styles.menu
-              }
-            >
+            <View style={styles.menu}>
               {/* TRATAMIENTOS */}
               <Pressable
-                style={
-                  styles.menuItem
-                }
-                onPress={() =>
-                  navigateTo(
-                    "/treatments"
-                  )
-                }
+                style={styles.menuItem}
+                onPress={() => navigateTo("/treatments")}
               >
-                <View
-                  style={
-                    styles.menuIcon
-                  }
-                >
+                <View style={styles.menuIcon}>
                   <Ionicons
                     name="medical-outline"
                     size={22}
-                    color={
-                      colors.primary
-                    }
+                    color={colors.primary}
                   />
                 </View>
 
-                <Text
-                  style={
-                    styles.menuText
-                  }
-                >
-                  Tratamientos
-                </Text>
+                <Text style={styles.menuText}>Tratamientos</Text>
 
                 <Ionicons
                   name="chevron-forward"
                   size={19}
-                  color={
-                    colors.textSecondary
-                  }
+                  color={colors.textSecondary}
                 />
               </Pressable>
 
               {/* SOLICITAR CITA */}
               <Pressable
-                style={
-                  styles.menuItem
-                }
-                onPress={() =>
-                  navigateTo(
-                    "/appointment/create"
-                  )
-                }
+                style={styles.menuItem}
+                onPress={() => navigateTo("/appointment/create")}
               >
-                <View
-                  style={
-                    styles.menuIcon
-                  }
-                >
+                <View style={styles.menuIcon}>
                   <Ionicons
                     name="calendar-outline"
                     size={22}
-                    color={
-                      colors.primary
-                    }
+                    color={colors.primary}
                   />
                 </View>
 
-                <Text
-                  style={
-                    styles.menuText
-                  }
-                >
-                  Solicitar cita
-                </Text>
+                <Text style={styles.menuText}>Solicitar cita</Text>
 
                 <Ionicons
                   name="chevron-forward"
                   size={19}
-                  color={
-                    colors.textSecondary
-                  }
+                  color={colors.textSecondary}
                 />
               </Pressable>
 
               {/* MIS CITAS */}
               <Pressable
-                style={
-                  styles.menuItem
-                }
-                onPress={() =>
-                  navigateTo(
-                    "/appointments"
-                  )
-                }
+                style={styles.menuItem}
+                onPress={() => navigateTo("/appointments")}
               >
-                <View
-                  style={
-                    styles.menuIcon
-                  }
-                >
+                <View style={styles.menuIcon}>
                   <Ionicons
                     name="time-outline"
                     size={22}
-                    color={
-                      colors.primary
-                    }
+                    color={colors.primary}
                   />
                 </View>
 
-                <Text
-                  style={
-                    styles.menuText
-                  }
-                >
-                  Mis citas
-                </Text>
+                <Text style={styles.menuText}>Mis citas</Text>
 
                 <Ionicons
                   name="chevron-forward"
                   size={19}
-                  color={
-                    colors.textSecondary
-                  }
+                  color={colors.textSecondary}
+                />
+              </Pressable>
+
+              {/* HISTORIAL MÉDICO */}
+              <Pressable
+                style={styles.menuItem}
+                onPress={() =>
+                  navigateTo(
+                    "/history", // Ajusta la ruta exacta de tu pantalla de historial según tu estructura de archivos
+                  )
+                }
+              >
+                <View style={styles.menuIcon}>
+                  <Ionicons
+                    name="document-text-outline"
+                    size={22}
+                    color={colors.primary}
+                  />
+                </View>
+
+                <Text style={styles.menuText}>Historial médico</Text>
+
+                <Ionicons
+                  name="chevron-forward"
+                  size={19}
+                  color={colors.textSecondary}
                 />
               </Pressable>
 
               {/* PERFIL */}
               <Pressable
-                style={
-                  styles.menuItem
-                }
-                onPress={() =>
-                  navigateTo(
-                    "/profile"
-                  )
-                }
+                style={styles.menuItem}
+                onPress={() => navigateTo("/profile")}
               >
-                <View
-                  style={
-                    styles.menuIcon
-                  }
-                >
+                <View style={styles.menuIcon}>
                   <Ionicons
                     name="person-outline"
                     size={22}
-                    color={
-                      colors.primary
-                    }
+                    color={colors.primary}
                   />
                 </View>
 
-                <Text
-                  style={
-                    styles.menuText
-                  }
-                >
-                  Mi perfil
-                </Text>
+                <Text style={styles.menuText}>Mi perfil</Text>
 
                 <Ionicons
                   name="chevron-forward"
                   size={19}
-                  color={
-                    colors.textSecondary
-                  }
+                  color={colors.textSecondary}
                 />
               </Pressable>
             </View>
 
             {/* CERRAR SESIÓN */}
-            <View
-              style={
-                styles.logoutContainer
-              }
-            >
-              <Pressable
-                style={
-                  styles.logoutItem
-                }
-                onPress={
-                  handleLogout
-                }
-              >
-                <View
-                  style={
-                    styles.logoutIcon
-                  }
-                >
-                  <Ionicons
-                    name="log-out-outline"
-                    size={22}
-                    color="#D9534F"
-                  />
+            <View style={styles.logoutContainer}>
+              <Pressable style={styles.logoutItem} onPress={handleLogout}>
+                <View style={styles.logoutIcon}>
+                  <Ionicons name="log-out-outline" size={22} color="#D9534F" />
                 </View>
 
-                <Text
-                  style={
-                    styles.logoutText
-                  }
-                >
-                  Cerrar sesión
-                </Text>
+                <Text style={styles.logoutText}>Cerrar sesión</Text>
               </Pressable>
             </View>
 
             {/* FOOTER */}
-            <View
-              style={
-                styles.footer
-              }
-            >
-              <Text
-                style={
-                  styles.footerText
-                }
-              >
-                Cuidamos tu sonrisa
-              </Text>
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Cuidamos tu sonrisa</Text>
             </View>
           </View>
         </View>
@@ -403,99 +227,36 @@ export default function SideMenu({
 
       {/* MODAL DE CONFIRMACIÓN */}
       <Modal
-        visible={
-          modalLogoutVisible
-        }
+        visible={modalLogoutVisible}
         transparent
         animationType="fade"
-        onRequestClose={() =>
-          setLogoutVisible(
-            false
-          )
-        }
+        onRequestClose={() => setLogoutVisible(false)}
       >
-        <View
-          style={
-            styles.confirmOverlay
-          }
-        >
-          <View
-            style={
-              styles.confirmBox
-            }
-          >
-            <View
-              style={
-                styles.confirmIconContainer
-              }
-            >
-              <Ionicons
-                name="log-out-outline"
-                size={30}
-                color="#D9534F"
-              />
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmBox}>
+            <View style={styles.confirmIconContainer}>
+              <Ionicons name="log-out-outline" size={30} color="#D9534F" />
             </View>
 
-            <Text
-              style={
-                styles.confirmTitle
-              }
-            >
-              ¿Querés cerrar sesión?
+            <Text style={styles.confirmTitle}>¿Querés cerrar sesión?</Text>
+
+            <Text style={styles.confirmSubtitle}>
+              Tendrás que ingresar tus credenciales nuevamente para acceder.
             </Text>
 
-            <Text
-              style={
-                styles.confirmSubtitle
-              }
-            >
-              Tendrás que ingresar
-              tus credenciales
-              nuevamente para
-              acceder.
-            </Text>
-
-            <View
-              style={
-                styles.confirmButtonsRow
-              }
-            >
+            <View style={styles.confirmButtonsRow}>
               <Pressable
-                style={[
-                  styles.confirmBtn,
-                  styles.cancelBtn,
-                ]}
-                onPress={() =>
-                  setLogoutVisible(
-                    false
-                  )
-                }
+                style={[styles.confirmBtn, styles.cancelBtn]}
+                onPress={() => setLogoutVisible(false)}
               >
-                <Text
-                  style={
-                    styles.cancelBtnText
-                  }
-                >
-                  No
-                </Text>
+                <Text style={styles.cancelBtnText}>No</Text>
               </Pressable>
 
               <Pressable
-                style={[
-                  styles.confirmBtn,
-                  styles.acceptBtn,
-                ]}
-                onPress={
-                  confirmLogout
-                }
+                style={[styles.confirmBtn, styles.acceptBtn]}
+                onPress={confirmLogout}
               >
-                <Text
-                  style={
-                    styles.acceptBtnText
-                  }
-                >
-                  Sí, salir
-                </Text>
+                <Text style={styles.acceptBtnText}>Sí, salir</Text>
               </Pressable>
             </View>
           </View>
@@ -516,15 +277,13 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
-    backgroundColor:
-      "rgba(20, 35, 30, 0.38)",
+    backgroundColor: "rgba(20, 35, 30, 0.38)",
   },
 
   drawer: {
     width: "84%",
     height: "100%",
-    backgroundColor:
-      colors.white,
+    backgroundColor: colors.white,
     paddingTop: 60,
     paddingHorizontal: 22,
   },
@@ -532,12 +291,10 @@ const styles = StyleSheet.create({
   top: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent:
-      "space-between",
+    justifyContent: "space-between",
     paddingBottom: 24,
     borderBottomWidth: 1,
-    borderBottomColor:
-      colors.border,
+    borderBottomColor: colors.border,
   },
 
   brandContainer: {
@@ -549,11 +306,9 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 16,
-    backgroundColor:
-      colors.primary,
+    backgroundColor: colors.primary,
     alignItems: "center",
-    justifyContent:
-      "center",
+    justifyContent: "center",
     marginRight: 12,
   },
 
@@ -565,8 +320,7 @@ const styles = StyleSheet.create({
 
   subtitle: {
     fontSize: 11,
-    color:
-      colors.textSecondary,
+    color: colors.textSecondary,
     marginTop: 3,
   },
 
@@ -574,11 +328,9 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor:
-      colors.background,
+    backgroundColor: colors.background,
     alignItems: "center",
-    justifyContent:
-      "center",
+    justifyContent: "center",
   },
 
   menu: {
@@ -596,11 +348,9 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 13,
-    backgroundColor:
-      colors.primaryLight,
+    backgroundColor: colors.primaryLight,
     alignItems: "center",
-    justifyContent:
-      "center",
+    justifyContent: "center",
   },
 
   menuText: {
@@ -614,8 +364,7 @@ const styles = StyleSheet.create({
   logoutContainer: {
     marginTop: 15,
     borderTopWidth: 1,
-    borderTopColor:
-      colors.border,
+    borderTopColor: colors.border,
     paddingTop: 15,
   },
 
@@ -629,11 +378,9 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 13,
-    backgroundColor:
-      "#FDECEA",
+    backgroundColor: "#FDECEA",
     alignItems: "center",
-    justifyContent:
-      "center",
+    justifyContent: "center",
   },
 
   logoutText: {
@@ -649,23 +396,19 @@ const styles = StyleSheet.create({
     marginBottom: 35,
     paddingTop: 20,
     borderTopWidth: 1,
-    borderTopColor:
-      colors.border,
+    borderTopColor: colors.border,
   },
 
   footerText: {
     fontSize: 12,
-    color:
-      colors.textSecondary,
+    color: colors.textSecondary,
     textAlign: "center",
   },
 
   confirmOverlay: {
     flex: 1,
-    backgroundColor:
-      "rgba(0, 0, 0, 0.5)",
-    justifyContent:
-      "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
   },
@@ -673,8 +416,7 @@ const styles = StyleSheet.create({
   confirmBox: {
     width: "100%",
     maxWidth: 320,
-    backgroundColor:
-      colors.white,
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: 24,
     alignItems: "center",
@@ -692,10 +434,8 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 20,
-    backgroundColor:
-      "#FDECEA",
-    justifyContent:
-      "center",
+    backgroundColor: "#FDECEA",
+    justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
   },
@@ -710,8 +450,7 @@ const styles = StyleSheet.create({
 
   confirmSubtitle: {
     fontSize: 13,
-    color:
-      colors.textSecondary,
+    color: colors.textSecondary,
     textAlign: "center",
     lineHeight: 18,
     marginBottom: 22,
@@ -728,16 +467,13 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     borderRadius: 12,
     alignItems: "center",
-    justifyContent:
-      "center",
+    justifyContent: "center",
   },
 
   cancelBtn: {
-    backgroundColor:
-      colors.background,
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor:
-      colors.border,
+    borderColor: colors.border,
   },
 
   cancelBtnText: {
@@ -747,8 +483,7 @@ const styles = StyleSheet.create({
   },
 
   acceptBtn: {
-    backgroundColor:
-      "#D9534F",
+    backgroundColor: "#D9534F",
   },
 
   acceptBtnText: {

@@ -1,5 +1,5 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-
 import { useEffect, useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -19,6 +19,7 @@ import {
   obtenerTratamientos,
 } from "../../services/api";
 
+import Header from "../../components/home/Header";
 import { useAuth } from "../../context/AuthContext";
 import { guardarDocumento } from "../../services/firestore";
 
@@ -61,11 +62,9 @@ export default function CreateAppointmentScreen() {
     "0",
   )}-${String(hoy.getDate()).padStart(2, "0")}`;
 
-  // Estado para el calendario (Mes y Año)
   const [anioActual, setAnioActual] = useState(hoy.getFullYear());
   const [mesActual, setMesActual] = useState(hoy.getMonth());
 
-  // Control de apertura de Modales
   const [mostrarModalCalendario, setMostrarModalCalendario] = useState(false);
   const [mostrarModalTratamientos, setMostrarModalTratamientos] =
     useState(false);
@@ -107,9 +106,9 @@ export default function CreateAppointmentScreen() {
       const dataTratamientos = await obtenerTratamientos();
       const tratamientosActivos = Array.isArray(dataTratamientos)
         ? dataTratamientos.filter(
-          (t: Tratamiento) =>
-            !t.estado || t.estado.toLowerCase() === "activo",
-        )
+            (t: Tratamiento) =>
+              !t.estado || t.estado.toLowerCase() === "activo",
+          )
         : [];
 
       setListaTratamientos(tratamientosActivos);
@@ -117,8 +116,8 @@ export default function CreateAppointmentScreen() {
       const dataHorarios = await obtenerHorarios();
       const horariosActivos = Array.isArray(dataHorarios)
         ? dataHorarios.filter(
-          (h: Horario) => !h.estado || h.estado.toLowerCase() === "activo",
-        )
+            (h: Horario) => !h.estado || h.estado.toLowerCase() === "activo",
+          )
         : [];
 
       setHorarios(horariosActivos);
@@ -148,7 +147,6 @@ export default function CreateAppointmentScreen() {
     }
   };
 
-  // Generador de días del mes para el calendario
   const diasDelMes = useMemo(() => {
     const primerDia = new Date(anioActual, mesActual, 1);
     const ultimoDia = new Date(anioActual, mesActual + 1, 0);
@@ -256,23 +254,18 @@ export default function CreateAppointmentScreen() {
       horarioDia.hora_fin,
     );
 
-    // Obtener la hora actual del dispositivo en minutos
     const ahora = new Date();
     const minutosHoraActual = ahora.getHours() * 60 + ahora.getMinutes();
 
     return todasLasHoras.filter((horaDisponible) => {
-      // 1. Si la fecha seleccionada es HOY, descartar horas pasadas
       if (fecha === hoyStr) {
         const [hSlot, mSlot] = horaDisponible.split(":").map(Number);
         const minutosSlot = hSlot * 60 + mSlot;
-
-        // Si la hora ya pasó (o es la hora exacta en curso), se oculta
         if (minutosSlot <= minutosHoraActual) {
           return false;
         }
       }
 
-      // 2. Verificar que no esté ocupada por otra cita activa
       const horaBD = `${horaDisponible}:00`;
       const ocupada = citasExistentes.some((cita) => {
         const fechaCita = cita.fecha?.includes("T")
@@ -380,13 +373,17 @@ export default function CreateAppointmentScreen() {
       }
 
       setExito("¡Solicitud de cita enviada con éxito!");
+
+      // Guardar en Firestore
       await guardarDocumento("citas", usuario.uid, {
         id_usuario: idUsuario,
         id_tratamiento: tratamientoSeleccionado.id_tratamiento,
+        tratamiento_nombre: tratamientoSeleccionado.nombre,
         fecha,
         hora: horaBD,
         estado: "pendiente",
       });
+
       setTimeout(() => {
         router.replace("/appointments");
       }, 1000);
@@ -413,28 +410,17 @@ export default function CreateAppointmentScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 12 }]}
+      contentContainerStyle={[
+        styles.container,
+        { paddingTop: insets.top + 12 },
+      ]}
       keyboardShouldPersistTaps="handled"
     >
-      {/* NAVEGACIÓN */}
-      <View style={styles.headerNav}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
-        </TouchableOpacity>
-        <View style={styles.iconGroup}>
-          <TouchableOpacity onPress={() => router.push("/home")}>
-            <Text style={styles.iconText}>🏠</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/profile")}>
-            <Text style={[styles.iconText, { marginLeft: 15 }]}>👤</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <Header />
 
-      {/* MARCA */}
       <View style={styles.branding}>
         <View style={styles.logoBox}>
-          <Text style={styles.logoIcon}>🦷</Text>
+          <Ionicons name="medical-outline" size={28} color="#FFFFFF" />
         </View>
         <Text style={styles.brandTitle}>Control Dental</Text>
         <Text style={styles.brandSubtitle}>CLÍNICA DENTAL SONRISAS</Text>
@@ -458,7 +444,6 @@ export default function CreateAppointmentScreen() {
           </View>
         ) : null}
 
-        {/* 1. BOTÓN SELECTOR DE FECHA */}
         <Text style={styles.label}>Fecha</Text>
         <TouchableOpacity
           style={styles.selectorBox}
@@ -474,7 +459,6 @@ export default function CreateAppointmentScreen() {
           <Text style={styles.selectorIcon}>📅</Text>
         </TouchableOpacity>
 
-        {/* 2. BOTÓN SELECTOR DE TRATAMIENTO */}
         <Text style={[styles.label, { marginTop: 16 }]}>Tratamiento</Text>
         <TouchableOpacity
           style={styles.selectorBox}
@@ -494,7 +478,6 @@ export default function CreateAppointmentScreen() {
           <Text style={styles.selectorIcon}>▼</Text>
         </TouchableOpacity>
 
-        {/* 3. HORARIOS DISPONIBLES */}
         <Text style={[styles.label, { marginTop: 16 }]}>Hora</Text>
         {!fecha ? (
           <Text style={styles.emptyText}>Ingresa primero una fecha.</Text>
@@ -526,7 +509,6 @@ export default function CreateAppointmentScreen() {
           </View>
         )}
 
-        {/* BOTÓN SOLICITAR CITA */}
         <TouchableOpacity
           style={[styles.button, cargando && styles.buttonDisabled]}
           onPress={handleConfirmar}
@@ -540,7 +522,6 @@ export default function CreateAppointmentScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* MODAL EMERGENTE: CALENDARIO */}
       <Modal
         visible={mostrarModalCalendario}
         transparent={true}
@@ -558,7 +539,6 @@ export default function CreateAppointmentScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Cabecera del Mes */}
             <View style={styles.calendarHeader}>
               <TouchableOpacity onPress={() => cambiarMes(-1)}>
                 <Text style={styles.calendarNavBtn}>◀</Text>
@@ -571,7 +551,6 @@ export default function CreateAppointmentScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Días de la semana */}
             <View style={styles.weekDaysRow}>
               {["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"].map((d, idx) => (
                 <Text key={idx} style={styles.weekDayText}>
@@ -580,7 +559,6 @@ export default function CreateAppointmentScreen() {
               ))}
             </View>
 
-            {/* Cuadrícula de días */}
             <View style={styles.daysGrid}>
               {diasDelMes.map((diaStr, idx) => {
                 if (!diaStr) {
@@ -622,7 +600,6 @@ export default function CreateAppointmentScreen() {
         </View>
       </Modal>
 
-      {/* MODAL EMERGENTE: TRATAMIENTOS */}
       <Modal
         visible={mostrarModalTratamientos}
         transparent={true}
@@ -703,26 +680,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-  headerNav: {
-    width: "100%",
-    maxWidth: 430,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  backText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#1E293B",
-  },
-  iconGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  iconText: {
-    fontSize: 20,
-  },
   branding: {
     alignItems: "center",
     marginBottom: 20,
@@ -736,9 +693,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
     elevation: 4,
-  },
-  logoIcon: {
-    fontSize: 28,
   },
   brandTitle: {
     fontSize: 22,
@@ -782,7 +736,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 8,
   },
-  // Cajas selectoras que abren los modales
   selectorBox: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -807,7 +760,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#64748B",
   },
-  // Estilos Modales Emergentes
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.5)",
@@ -839,7 +791,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#64748B",
   },
-  // Calendario
   calendarHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -904,7 +855,6 @@ const styles = StyleSheet.create({
   dayCellTextDisabled: {
     color: "#94A3B8",
   },
-  // Lista de Tratamientos en Modal
   treatmentOption: {
     borderWidth: 1,
     borderColor: "#CBD5E1",
@@ -930,7 +880,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#64748B",
   },
-  // Horarios
   optionsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
