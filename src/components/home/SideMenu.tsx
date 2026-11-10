@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import {
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -105,9 +106,10 @@ export default function SideMenu({
 
           {/* PANEL */}
           <View
-            style={
-              styles.drawer
-            }
+            style={[
+              styles.drawer,
+              Platform.OS === "web" && styles.webDrawer,
+            ]}
           >
             {/* ENCABEZADO */}
             <View
@@ -527,6 +529,11 @@ const styles = StyleSheet.create({
       colors.white,
     paddingTop: 60,
     paddingHorizontal: 22,
+  },
+
+  webDrawer: {
+    maxWidth: 470,
+    alignSelf: "flex-start",
   },
 
   top: {
