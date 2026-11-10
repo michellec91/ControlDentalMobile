@@ -9,6 +9,7 @@ import { useEffect } from "react";
 
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -144,7 +145,7 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider style={Platform.OS === "web" ? styles.webFrame : undefined}>
       <AuthProvider>
         <RootLayoutNav />
       </AuthProvider>
@@ -153,6 +154,14 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
+  webFrame: {
+    flex: 1,
+    width: "100%",
+    maxWidth: 560,
+    alignSelf: "center",
+    marginHorizontal: "auto",
+  },
+
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
