@@ -1,12 +1,12 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
-import { colors } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 type Props = {
   fecha: string;
@@ -21,6 +21,9 @@ export default function NextAppointmentCard({
   tratamiento,
   onPress,
 }: Props) {
+  const { colors, modoActual } = useAppTheme();
+  const styles = createStyles(colors, modoActual);
+
   const fechaLimpia =
     fecha?.split("T")[0] || "";
 
@@ -193,7 +196,10 @@ export default function NextAppointmentCard({
   );
 }
 
-const styles =
+const createStyles = (
+  colors: any,
+  modoActual: "light" | "dark"
+) =>
   StyleSheet.create({
     container: {
       marginTop: 24,
@@ -210,12 +216,16 @@ const styles =
 
     card: {
       backgroundColor:
-        "#F0E8E6",
+        modoActual === "dark"
+          ? colors.surface
+          : "#F0E8E6",
       borderRadius: 20,
       padding: 18,
       borderWidth: 1,
       borderColor:
-        colors.primaryDark,
+        modoActual === "dark"
+          ? colors.border
+          : colors.primaryDark,
     },
 
     pressed: {
@@ -234,7 +244,9 @@ const styles =
       height: 44,
       borderRadius: 14,
       backgroundColor:
-        "#FFF9F9",
+        modoActual === "dark"
+          ? colors.input
+          : "#FFF9F9",
       alignItems:
         "center",
       justifyContent:

@@ -11,8 +11,8 @@ import {
   View,
 } from "react-native";
 
-import { colors } from "../../constants/theme";
 import { useAuth } from "../../context/AuthContext";
+import { useAppTheme } from "../../context/ThemeContext";
 
 type SideMenuProps = {
   visible: boolean;
@@ -24,6 +24,13 @@ export default function SideMenu({
   onClose,
 }: SideMenuProps) {
   const { logout } = useAuth();
+  const { colors, modoActual } = useAppTheme();
+
+  const styles = createStyles(
+    colors,
+    modoActual
+  );
+  
   const router = useRouter();
 
   const [
@@ -507,7 +514,11 @@ export default function SideMenu({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: any,
+  modoActual: "light" | "dark"
+) =>
+  StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -519,14 +530,16 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     backgroundColor:
-      "rgba(20, 35, 30, 0.38)",
+        modoActual === "dark"
+          ? "rgba(0, 0, 0, 0.65)"
+          : "rgba(20, 35, 30, 0.38)",
   },
 
   drawer: {
     width: "84%",
     height: "100%",
     backgroundColor:
-      colors.white,
+      colors.surface,
     paddingTop: 60,
     paddingHorizontal: 22,
   },
@@ -582,7 +595,7 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 12,
     backgroundColor:
-      colors.background,
+      colors.input,
     alignItems: "center",
     justifyContent:
       "center",
@@ -637,7 +650,9 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 13,
     backgroundColor:
-      "#FDECEA",
+        modoActual === "dark"
+          ? "#3A2020"
+          : "#FDECEA",
     alignItems: "center",
     justifyContent:
       "center",
@@ -681,7 +696,7 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 320,
     backgroundColor:
-      colors.white,
+      colors.surface,
     borderRadius: 20,
     padding: 24,
     alignItems: "center",
@@ -700,7 +715,9 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 20,
     backgroundColor:
-      "#FDECEA",
+        modoActual === "dark"
+          ? "#3A2020"
+          : "#FDECEA",
     justifyContent:
       "center",
     alignItems: "center",

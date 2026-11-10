@@ -16,6 +16,7 @@ import {
 import { API_URL, obtenerCitasPorUsuario } from "../services/api";
 
 import { useAuth } from "../context/AuthContext";
+import { useAppTheme } from "../context/ThemeContext";
 
 interface Cita {
   id_cita: number;
@@ -34,6 +35,9 @@ interface Cita {
 }
 
 export default function AppointmentsScreen() {
+  const { colors, modoActual } = useAppTheme();
+  const styles = createStyles(colors, modoActual);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -303,7 +307,14 @@ export default function AppointmentsScreen() {
 
       {/* NAVEGACIÓN */}
       <View style={styles.headerNav}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/home");
+            }
+          }}>
           <Text style={styles.backText}>← Volver</Text>
         </TouchableOpacity>
 
@@ -367,7 +378,7 @@ export default function AppointmentsScreen() {
         {cargando ? (
           <ActivityIndicator
             size="large"
-            color="#0088FF"
+            color={colors.primary}
             style={{
               marginVertical: 20,
             }}
@@ -482,7 +493,11 @@ export default function AppointmentsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: any,
+  modoActual: "light" | "dark"
+) =>
+  StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: "#F0F9FF",
@@ -545,17 +560,17 @@ const styles = StyleSheet.create({
   brandSubtitle: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#0088FF",
+    color: colors.primary,
     letterSpacing: 0.8,
   },
 
   card: {
     width: "100%",
     maxWidth: 430,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: colors.border,
     padding: 20,
     elevation: 2,
   },
@@ -563,12 +578,12 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0F172A",
+    color: colors.text,
   },
 
   sectionSubtitle: {
     fontSize: 13,
-    color: "#475569",
+    color: colors.textSecondary,
     marginBottom: 14,
     fontWeight: "500",
   },
@@ -606,9 +621,12 @@ const styles = StyleSheet.create({
   },
 
   appointmentCard: {
-    backgroundColor: "#E0F2FE",
+    backgroundColor:
+    modoActual === "dark"
+      ? colors.input
+      : "#E0F2FE",
     borderWidth: 1,
-    borderColor: "#BAE6FD",
+    borderColor: colors.border,
     borderRadius: 18,
     padding: 16,
     marginBottom: 14,
@@ -628,25 +646,25 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 15,
     fontWeight: "800",
-    color: "#1E293B",
+    color: colors.text,
   },
 
   hourText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#475569",
+    color: colors.textSecondary,
     marginLeft: 22,
   },
 
   divider: {
     height: 1,
-    backgroundColor: "#CBD5E1",
+    backgroundColor: colors.border,
     marginVertical: 8,
   },
 
   label: {
     fontSize: 12,
-    color: "#64748B",
+    color: colors.textSecondary,
     fontWeight: "600",
     marginTop: 4,
   },
@@ -654,7 +672,7 @@ const styles = StyleSheet.create({
   valueText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0F172A",
+    color: colors.text,
     marginBottom: 6,
   },
 
@@ -668,21 +686,21 @@ const styles = StyleSheet.create({
   statusConfirmed: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#2563EB",
+    color: colors.primary,
     marginBottom: 12,
   },
 
   statusCompleted: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#16A34A",
+    color: colors.success,
     marginBottom: 12,
   },
 
   statusDefault: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#475569",
+    color: colors.textSecondary,
     marginBottom: 12,
   },
 
@@ -693,28 +711,50 @@ const styles = StyleSheet.create({
   },
 
   cancelBtn: {
-    backgroundColor: "#FEE2E2",
+    backgroundColor:
+    modoActual === "dark"
+      ? "#4A1F23"
+      : "#FEE2E2",
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 10,
     marginRight: 8,
+    borderWidth: 1,
+    borderColor:
+    modoActual === "dark"
+      ? "#7F1D1D"
+      : "#FCA5A5",
   },
 
   cancelBtnText: {
-    color: "#DC2626",
+    color:
+    modoActual === "dark"
+      ? "#FCA5A5"
+      : "#DC2626",
     fontSize: 11,
     fontWeight: "700",
   },
 
   editBtn: {
-    backgroundColor: "#E0F2FE",
+    backgroundColor:
+    modoActual === "dark"
+      ? "#153A5B"
+      : "#E0F2FE",
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 10,
+    borderWidth: 1,
+  borderColor:
+    modoActual === "dark"
+      ? "#2563EB"
+      : "#7DD3FC",
   },
 
   editBtnText: {
-    color: "#0284C7",
+    color:
+    modoActual === "dark"
+      ? "#60A5FA"
+      : "#0284C7",
     fontSize: 11,
     fontWeight: "700",
   },
@@ -725,21 +765,21 @@ const styles = StyleSheet.create({
   },
 
   emptyText: {
-    color: "#64748B",
+    color: colors.textSecondary,
     fontSize: 13,
   },
 
   quickAccessLabel: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#475569",
+    color: colors.textSecondary,
     marginTop: 6,
     marginBottom: 8,
   },
 
   quickBtn: {
     borderWidth: 1,
-    borderColor: "#94A3B8",
+    borderColor: colors.border,
     borderRadius: 12,
     paddingVertical: 10,
     alignItems: "center",
@@ -749,12 +789,12 @@ const styles = StyleSheet.create({
   quickBtnText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#1E293B",
+    color: colors.text,
   },
 
   createMainBtn: {
     borderWidth: 1,
-    borderColor: "#0F172A",
+    borderColor: colors.primary,
     borderRadius: 16,
     paddingVertical: 12,
     alignItems: "center",
@@ -764,7 +804,7 @@ const styles = StyleSheet.create({
   createMainBtnText: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#0F172A",
+    color: colors.primary,
   },
 
   modalOverlay: {
@@ -778,11 +818,13 @@ const styles = StyleSheet.create({
   modalCard: {
     width: "100%",
     maxWidth: 340,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 22,
     alignItems: "center",
     elevation: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
 
   modalIcon: {
@@ -793,13 +835,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: colors.text,
     marginBottom: 6,
   },
 
   modalText: {
     fontSize: 13,
-    color: "#475569",
+    color: colors.textSecondary,
     textAlign: "center",
     marginBottom: 20,
     lineHeight: 18,
@@ -812,9 +854,9 @@ const styles = StyleSheet.create({
 
   modalBtnKeep: {
     flex: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: colors.input,
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: colors.border,
     borderRadius: 12,
     paddingVertical: 10,
     alignItems: "center",
@@ -822,7 +864,7 @@ const styles = StyleSheet.create({
   },
 
   modalBtnKeepText: {
-    color: "#475569",
+    color: colors.text,
     fontWeight: "700",
     fontSize: 13,
   },
