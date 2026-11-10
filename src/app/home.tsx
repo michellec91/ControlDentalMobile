@@ -27,8 +27,8 @@ import NextAppointmentCard from "../components/home/NextAppointmentCard";
 import ScheduleCard from "../components/home/ScheduleCard";
 import SideMenu from "../components/home/SideMenu";
 
-import { colors } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
+import { useAppTheme } from "../context/ThemeContext";
 import { obtenerCitasPorUsuario } from "../services/api";
 
 type Cita = {
@@ -44,6 +44,9 @@ type Cita = {
 };
 
 export default function HomeScreen() {
+  const { colors, modoActual } = useAppTheme();
+  const styles = createStyles(colors);
+
   const [
     menuVisible,
     setMenuVisible,
@@ -70,7 +73,7 @@ export default function HomeScreen() {
     useAuth();
 
   const router =
-    useRouter();
+    useRouter();  
 
   // -----------------------------------------
   // CARGAR PRÓXIMA CITA
@@ -243,13 +246,13 @@ export default function HomeScreen() {
       ]}
     >
       <StatusBar
-        barStyle="dark-content"
-        backgroundColor={
-          colors.background
+        barStyle={
+          modoActual === "dark"
+            ? "light-content"
+            : "dark-content"
         }
-        translucent={
-          false
-        }
+        backgroundColor={colors.background}
+        translucent={false}
       />
 
       <SideMenu
@@ -377,29 +380,25 @@ export default function HomeScreen() {
   );
 }
 
-const styles =
+const createStyles = (colors: any) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor:
-        colors.background,
+      backgroundColor: colors.background,
     },
 
     content: {
-      paddingHorizontal:
-        20,
+      paddingHorizontal: 20,
       paddingTop: 12,
     },
 
     message: {
       padding: 20,
-      alignItems:
-        "center",
+      alignItems: "center",
     },
 
     messageText: {
-      color:
-        colors.textSecondary,
+      color: colors.textSecondary,
       marginTop: 20,
       marginBottom: 8,
     },
@@ -408,33 +407,26 @@ const styles =
       marginTop: 24,
       padding: 18,
       borderRadius: 20,
-      backgroundColor:
-        colors.surface,
+      backgroundColor: colors.surface,
       borderWidth: 1,
-      borderColor:
-        colors.border,
+      borderColor: colors.border,
     },
 
     emptyTitle: {
       fontSize: 16,
-      fontWeight:
-        "700",
-      color:
-        colors.text,
+      fontWeight: "700",
+      color: colors.text,
     },
 
     emptyText: {
       fontSize: 14,
-      color:
-        colors.textSecondary,
+      color: colors.textSecondary,
       marginTop: 8,
     },
 
     link: {
-      color:
-        colors.primary,
-      fontWeight:
-        "700",
+      color: colors.primary,
+      fontWeight: "700",
       marginTop: 14,
     },
 

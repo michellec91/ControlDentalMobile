@@ -1,14 +1,15 @@
 import {
   Stack,
+  usePathname,
   useRouter,
   useSegments,
-  usePathname,
 } from "expo-router";
 
 import { useEffect } from "react";
 
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -23,6 +24,8 @@ import {
   AuthProvider,
   useAuth,
 } from "../context/AuthContext";
+
+import { ThemeProvider } from "../context/ThemeContext";
 
 function RootLayoutNav() {
   const {
@@ -144,15 +147,25 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider style={Platform.OS === "web" ? styles.webFrame : undefined}>
       <AuthProvider>
-        <RootLayoutNav />
+        <ThemeProvider>
+          <RootLayoutNav />
+        </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  webFrame: {
+    flex: 1,
+    width: "100%",
+    maxWidth: 560,
+    alignSelf: "center",
+    marginHorizontal: "auto",
+  },
+
   loadingContainer: {
     flex: 1,
     justifyContent: "center",

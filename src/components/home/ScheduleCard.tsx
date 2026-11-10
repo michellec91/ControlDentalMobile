@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 
-import { colors } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 import { obtenerHorarios } from "../../services/api";
 
 type Horario = {
@@ -23,6 +23,9 @@ type Horario = {
 };
 
 export default function ScheduleCard() {
+  const { colors, modoActual } = useAppTheme();
+  const styles = createStyles(colors, modoActual);
+
   const [
     horarios,
     setHorarios,
@@ -189,7 +192,11 @@ export default function ScheduleCard() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: any,
+  modoActual: "light" | "dark"
+) =>
+  StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
@@ -209,13 +216,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 17,
     paddingVertical: 16,
-    backgroundColor: colors.primaryLight,
+    backgroundColor:
+        modoActual === "dark"
+          ? colors.input
+          : colors.primaryLight,
   },
   headerIcon: {
     width: 43,
     height: 43,
     borderRadius: 14,
-    backgroundColor: colors.white,
+    backgroundColor:
+        modoActual === "dark"
+          ? colors.surface
+          : colors.white,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -226,7 +239,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: colors.primaryDark,
+    color: colors.primary,
   },
   headerSubtitle: {
     marginTop: 3,
@@ -258,7 +271,10 @@ const styles = StyleSheet.create({
   notice: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: colors.primaryLight,
+    backgroundColor:
+        modoActual === "dark"
+          ? colors.input
+          : colors.primaryLight,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 11,
@@ -269,7 +285,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     lineHeight: 18,
-    color: colors.primaryDark,
+    color:
+        modoActual === "dark"
+          ? colors.text
+          : colors.primaryDark,
   },
   loading: {
     padding: 24,

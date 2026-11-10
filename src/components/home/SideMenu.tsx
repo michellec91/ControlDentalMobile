@@ -160,11 +160,7 @@ export default function SideMenu({ visible, onClose }: SideMenuProps) {
               {/* HISTORIAL MÉDICO */}
               <Pressable
                 style={styles.menuItem}
-                onPress={() =>
-                  navigateTo(
-                    "/history", // Ajusta la ruta exacta de tu pantalla de historial según tu estructura de archivos
-                  )
-                }
+                onPress={() => navigateTo("/history")}
               >
                 <View style={styles.menuIcon}>
                   <Ionicons
@@ -286,6 +282,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingTop: 60,
     paddingHorizontal: 22,
+  },
+
+  webDrawer: {
+    maxWidth: 470,
+    alignSelf: "flex-start",
   },
 
   top: {
