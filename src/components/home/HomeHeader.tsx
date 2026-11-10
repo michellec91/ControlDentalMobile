@@ -9,8 +9,8 @@ import {
   View,
 } from "react-native";
 
-import { colors } from "../../constants/theme";
 import { useAuth } from "../../context/AuthContext";
+import { useAppTheme } from "../../context/ThemeContext";
 
 type HomeHeaderProps = {
   onMenuPress: () => void;
@@ -19,6 +19,9 @@ type HomeHeaderProps = {
 export default function HomeHeader({
   onMenuPress,
 }: HomeHeaderProps) {
+  const { colors } = useAppTheme();
+  const styles = createStyles(colors);
+  
   const { usuario } =
     useAuth();
   const isTreatmentsScreen = usePathname() === "/treatments";
@@ -145,34 +148,27 @@ export default function HomeHeader({
   );
 }
 
-const styles =
+  const createStyles = (colors: any) =>
   StyleSheet.create({
     header: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
+      flexDirection: "row",
+      alignItems: "center",
       marginBottom: 24,
     },
 
     homeButton: {
       flex: 1,
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
+      flexDirection: "row",
+      alignItems: "center",
     },
 
     logo: {
       width: 44,
       height: 44,
       borderRadius: 14,
-      backgroundColor:
-        colors.primary,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
+      backgroundColor: colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
     },
 
     brandContainer: {
@@ -182,34 +178,26 @@ const styles =
 
     brand: {
       fontSize: 18,
-      fontWeight:
-        "700",
-      color:
-        colors.text,
+      fontWeight: "700",
+      color: colors.text,
     },
 
     clinic: {
       fontSize: 10,
-      color:
-        colors.primary,
-      fontWeight:
-        "700",
+      color: colors.primary,
+      fontWeight: "700",
       marginTop: 2,
-      letterSpacing:
-        0.4,
+      letterSpacing: 0.4,
     },
 
     profileButton: {
       width: 44,
       height: 44,
       borderRadius: 22,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
+      alignItems: "center",
+      justifyContent: "center",
       marginRight: 4,
-      overflow:
-        "hidden",
+      overflow: "hidden",
     },
 
     profileImage: {
@@ -217,22 +205,17 @@ const styles =
       height: 36,
       borderRadius: 18,
       borderWidth: 1,
-      borderColor:
-        colors.border,
+      borderColor: colors.border,
     },
 
     menuButton: {
       width: 44,
       height: 44,
       borderRadius: 14,
-      backgroundColor:
-        colors.surface,
+      backgroundColor: colors.surface,
       borderWidth: 1,
-      borderColor:
-        colors.border,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
+      borderColor: colors.border,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });

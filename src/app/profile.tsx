@@ -19,12 +19,15 @@ import {
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colors } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
+import { useAppTheme } from "../context/ThemeContext";
 import { API_URL } from "../services/api";
 
 export default function ProfileScreen() {
   const { usuario, logout, actualizarUsuario } = useAuth();
+  const { colors } = useAppTheme();
+
+  const styles = createStyles(colors);
 
   const [modalLogoutVisible, setModalLogoutVisible] =
     useState(false);
@@ -352,6 +355,40 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
+        {/* APARIENCIA */}
+        <View style={styles.card}>
+          <View style={styles.cardHeading}>
+            <Ionicons
+              name="color-palette-outline"
+              size={19}
+              color={colors.text}
+            />
+
+            <Text style={styles.cardTitle}>
+              Apariencia
+            </Text>
+          </View>
+
+          <Text style={styles.appearanceDescription}>
+            Personalizá cómo querés ver la aplicación.
+          </Text>
+
+          <Pressable
+            style={styles.outlineButton}
+            onPress={() => router.push("/appearance")}
+          >
+            <Ionicons
+              name="moon-outline"
+              size={18}
+              color={colors.text}
+            />
+
+            <Text style={styles.outlineButtonText}>
+              Cambiar tema
+            </Text>
+          </Pressable>
+        </View>
+
         {/* CERRAR SESIÓN */}
         <Pressable
           style={styles.logoutButton}
@@ -420,7 +457,8 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => 
+  StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
@@ -519,6 +557,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
 
+  appearanceDescription: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 19,
+    marginBottom: 14,
+  },
+
   label: {
     fontSize: 12,
     color: colors.textSecondary,
@@ -591,7 +636,7 @@ const styles = StyleSheet.create({
   confirmBox: {
     width: "100%",
     maxWidth: 320,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 24,
     alignItems: "center",

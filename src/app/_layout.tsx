@@ -1,8 +1,8 @@
 import {
   Stack,
+  usePathname,
   useRouter,
   useSegments,
-  usePathname,
 } from "expo-router";
 
 import { useEffect } from "react";
@@ -24,6 +24,8 @@ import {
   AuthProvider,
   useAuth,
 } from "../context/AuthContext";
+
+import { ThemeProvider } from "../context/ThemeContext";
 
 function RootLayoutNav() {
   const {
@@ -147,7 +149,9 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider style={Platform.OS === "web" ? styles.webFrame : undefined}>
       <AuthProvider>
-        <RootLayoutNav />
+        <ThemeProvider>
+          <RootLayoutNav />
+        </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );
