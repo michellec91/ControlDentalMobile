@@ -1,9 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image, StyleSheet, Text, View } from "react-native";
 
-import { colors } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 export default function LocationCard() {
+  const { colors, modoActual } = useAppTheme();
+  const styles = createStyles(colors, modoActual);
+
   return (
     <>
       <Text style={styles.sectionTitle}>Encontranos</Text>
@@ -63,7 +66,11 @@ export default function LocationCard() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: any,
+  modoActual: "light" | "dark"
+) =>
+  StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
@@ -98,7 +105,10 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: colors.primaryLight,
+    backgroundColor:
+        modoActual === "dark"
+          ? colors.input
+          : colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },

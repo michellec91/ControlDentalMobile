@@ -4,8 +4,8 @@ import { useState } from "react";
 
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { colors } from "../../constants/theme";
 import { useAuth } from "../../context/AuthContext";
+import { useAppTheme } from "../../context/ThemeContext";
 
 type SideMenuProps = {
   visible: boolean;
@@ -14,6 +14,10 @@ type SideMenuProps = {
 
 export default function SideMenu({ visible, onClose }: SideMenuProps) {
   const { logout } = useAuth();
+  const { colors, modoActual } = useAppTheme();
+
+  const styles = createStyles(colors, modoActual);
+
   const router = useRouter();
 
   const [modalLogoutVisible, setLogoutVisible] = useState(false);
@@ -262,234 +266,235 @@ export default function SideMenu({ visible, onClose }: SideMenuProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-
-  overlay: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: "rgba(20, 35, 30, 0.38)",
-  },
-
-  drawer: {
-    width: "84%",
-    height: "100%",
-    backgroundColor: colors.white,
-    paddingTop: 60,
-    paddingHorizontal: 22,
-  },
-
-  webDrawer: {
-    maxWidth: 470,
-    alignSelf: "flex-start",
-  },
-
-  top: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingBottom: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-
-  brandContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  logo: {
-    width: 50,
-    height: 50,
-    borderRadius: 16,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-
-  title: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: colors.text,
-  },
-
-  subtitle: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    marginTop: 3,
-  },
-
-  closeButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  menu: {
-    marginTop: 22,
-  },
-
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    marginBottom: 5,
-  },
-
-  menuIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 13,
-    backgroundColor: colors.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  menuText: {
-    flex: 1,
-    marginLeft: 14,
-    fontSize: 15,
-    fontWeight: "600",
-    color: colors.text,
-  },
-
-  logoutContainer: {
-    marginTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: 15,
-  },
-
-  logoutItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-  },
-
-  logoutIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 13,
-    backgroundColor: "#FDECEA",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  logoutText: {
-    flex: 1,
-    marginLeft: 14,
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#D9534F",
-  },
-
-  footer: {
-    marginTop: "auto",
-    marginBottom: 35,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-
-  footerText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    textAlign: "center",
-  },
-
-  confirmOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 24,
-  },
-
-  confirmBox: {
-    width: "100%",
-    maxWidth: 320,
-    backgroundColor: colors.white,
-    borderRadius: 20,
-    padding: 24,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
+const createStyles = (colors: any, modoActual: "light" | "dark") =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 5,
-  },
 
-  confirmIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 20,
-    backgroundColor: "#FDECEA",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
+    overlay: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      backgroundColor: "rgba(20, 35, 30, 0.38)",
+    },
 
-  confirmTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.text,
-    textAlign: "center",
-    marginBottom: 8,
-  },
+    drawer: {
+      width: "84%",
+      height: "100%",
+      backgroundColor: colors.white,
+      paddingTop: 60,
+      paddingHorizontal: 22,
+    },
 
-  confirmSubtitle: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    textAlign: "center",
-    lineHeight: 18,
-    marginBottom: 22,
-  },
+    webDrawer: {
+      maxWidth: 470,
+      alignSelf: "flex-start",
+    },
 
-  confirmButtonsRow: {
-    flexDirection: "row",
-    gap: 12,
-    width: "100%",
-  },
+    top: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingBottom: 24,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
 
-  confirmBtn: {
-    flex: 1,
-    paddingVertical: 13,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    brandContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  cancelBtn: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
+    logo: {
+      width: 50,
+      height: 50,
+      borderRadius: 16,
+      backgroundColor: colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 12,
+    },
 
-  cancelBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.text,
-  },
+    title: {
+      fontSize: 17,
+      fontWeight: "700",
+      color: colors.text,
+    },
 
-  acceptBtn: {
-    backgroundColor: "#D9534F",
-  },
+    subtitle: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      marginTop: 3,
+    },
 
-  acceptBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.white,
-  },
-});
+    closeButton: {
+      width: 38,
+      height: 38,
+      borderRadius: 12,
+      backgroundColor: colors.background,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    menu: {
+      marginTop: 22,
+    },
+
+    menuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 12,
+      marginBottom: 5,
+    },
+
+    menuIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 13,
+      backgroundColor: colors.primaryLight,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    menuText: {
+      flex: 1,
+      marginLeft: 14,
+      fontSize: 15,
+      fontWeight: "600",
+      color: colors.text,
+    },
+
+    logoutContainer: {
+      marginTop: 15,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: 15,
+    },
+
+    logoutItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 10,
+    },
+
+    logoutIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 13,
+      backgroundColor: "#FDECEA",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    logoutText: {
+      flex: 1,
+      marginLeft: 14,
+      fontSize: 15,
+      fontWeight: "600",
+      color: "#D9534F",
+    },
+
+    footer: {
+      marginTop: "auto",
+      marginBottom: 35,
+      paddingTop: 20,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    footerText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      textAlign: "center",
+    },
+
+    confirmOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 24,
+    },
+
+    confirmBox: {
+      width: "100%",
+      maxWidth: 320,
+      backgroundColor: colors.white,
+      borderRadius: 20,
+      padding: 24,
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      shadowOpacity: 0.15,
+      shadowRadius: 12,
+      elevation: 5,
+    },
+
+    confirmIconContainer: {
+      width: 60,
+      height: 60,
+      borderRadius: 20,
+      backgroundColor: "#FDECEA",
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+
+    confirmTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+      textAlign: "center",
+      marginBottom: 8,
+    },
+
+    confirmSubtitle: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      textAlign: "center",
+      lineHeight: 18,
+      marginBottom: 22,
+    },
+
+    confirmButtonsRow: {
+      flexDirection: "row",
+      gap: 12,
+      width: "100%",
+    },
+
+    confirmBtn: {
+      flex: 1,
+      paddingVertical: 13,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    cancelBtn: {
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    cancelBtnText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.text,
+    },
+
+    acceptBtn: {
+      backgroundColor: "#D9534F",
+    },
+
+    acceptBtnText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.white,
+    },
+  });

@@ -2,9 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { colors } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 export default function HomeActions() {
+  const { colors, modoActual } = useAppTheme();
+  const styles = createStyles(colors, modoActual);
+
   return (
     <>
       <Text style={styles.sectionTitle}>¿Qué necesitás hoy?</Text>
@@ -60,7 +63,11 @@ export default function HomeActions() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: any,
+  modoActual: "light" | "dark"
+) =>
+  StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
@@ -89,7 +96,10 @@ const styles = StyleSheet.create({
   },
 
   primarySubtitle: {
-    color: "#E4F3EE",
+    color:
+        modoActual === "dark"
+          ? "#E8EEF7"
+          : "#E4F3EE",
     fontSize: 12,
     marginTop: 4,
   },
@@ -117,7 +127,10 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 15,
-    backgroundColor: colors.primaryLight,
+    backgroundColor:
+        modoActual === "dark"
+          ? colors.input
+          : colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },

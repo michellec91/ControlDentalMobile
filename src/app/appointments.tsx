@@ -26,6 +26,7 @@ import { db } from "../services/firestore";
 
 import { Ionicons } from "@expo/vector-icons";
 import Header from "../components/home/Header";
+import { useAppTheme } from "../context/ThemeContext";
 
 interface Cita {
   id_cita: number;
@@ -40,6 +41,9 @@ interface Cita {
 }
 
 export default function AppointmentsScreen() {
+  const { colors, modoActual } = useAppTheme();
+  const styles = createStyles(colors, modoActual);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -339,7 +343,7 @@ export default function AppointmentsScreen() {
         {cargando ? (
           <ActivityIndicator
             size="large"
-            color="#0088FF"
+            color={colors.primary}
             style={{
               marginVertical: 20,
             }}
@@ -440,292 +444,299 @@ export default function AppointmentsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    backgroundColor: "#F0F9FF",
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 32,
-    alignItems: "center",
-  },
-  branding: {
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  logoBox: {
-    width: 52,
-    height: 52,
-    backgroundColor: "#0088FF",
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 6,
-    elevation: 3,
-  },
-  brandTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
-  brandSubtitle: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#0088FF",
-    letterSpacing: 0.8,
-  },
-  card: {
-    width: "100%",
-    maxWidth: 430,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-    padding: 20,
-    elevation: 2,
-  },
-  welcomeText: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
-  sectionSubtitle: {
-    fontSize: 13,
-    color: "#475569",
-    marginBottom: 14,
-    fontWeight: "500",
-  },
-  errorBox: {
-    backgroundColor: "#FEE2E2",
-    borderWidth: 1,
-    borderColor: "#FCA5A5",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 14,
-  },
-  errorText: {
-    color: "#991B1B",
-    fontSize: 12,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  successBox: {
-    backgroundColor: "#DCFCE7",
-    borderWidth: 1,
-    borderColor: "#86EFAC",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 14,
-  },
-  successText: {
-    color: "#166534",
-    fontSize: 12,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  appointmentCard: {
-    backgroundColor: "#E0F2FE",
-    borderWidth: 1,
-    borderColor: "#BAE6FD",
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 14,
-  },
-  dateHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  calendarIcon: {
-    fontSize: 16,
-    marginRight: 6,
-  },
-  dateText: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#1E293B",
-  },
-  hourText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#475569",
-    marginLeft: 22,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#CBD5E1",
-    marginVertical: 8,
-  },
-  label: {
-    fontSize: 12,
-    color: "#64748B",
-    fontWeight: "600",
-    marginTop: 4,
-  },
-  valueText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#0F172A",
-    marginBottom: 6,
-  },
-  statusPending: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#D97706",
-    marginBottom: 12,
-  },
-  statusConfirmed: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#2563EB",
-    marginBottom: 12,
-  },
-  statusCompleted: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#16A34A",
-    marginBottom: 12,
-  },
-  statusDefault: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#475569",
-    marginBottom: 12,
-  },
-  actionRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: 4,
-  },
-  cancelBtn: {
-    backgroundColor: "#FEE2E2",
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 10,
-    marginRight: 8,
-  },
-  cancelBtnText: {
-    color: "#DC2626",
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  editBtn: {
-    backgroundColor: "#E0F2FE",
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 10,
-  },
-  editBtnText: {
-    color: "#0284C7",
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  emptyBox: {
-    padding: 20,
-    alignItems: "center",
-  },
-  emptyText: {
-    color: "#64748B",
-    fontSize: 13,
-  },
-  quickAccessLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#475569",
-    marginTop: 6,
-    marginBottom: 8,
-  },
-  quickBtn: {
-    borderWidth: 1,
-    borderColor: "#94A3B8",
-    borderRadius: 12,
-    paddingVertical: 10,
-    alignItems: "center",
-    marginBottom: 14,
-  },
-  quickBtnText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#1E293B",
-  },
-  createMainBtn: {
-    borderWidth: 1,
-    borderColor: "#0F172A",
-    borderRadius: 16,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginTop: 4,
-  },
-  createMainBtnText: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-  },
-  modalCard: {
-    width: "100%",
-    maxWidth: 340,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 22,
-    alignItems: "center",
-    elevation: 6,
-  },
-  modalIcon: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#0F172A",
-    marginBottom: 6,
-  },
-  modalText: {
-    fontSize: 13,
-    color: "#475569",
-    textAlign: "center",
-    marginBottom: 20,
-    lineHeight: 18,
-  },
-  modalActionRow: {
-    flexDirection: "row",
-    width: "100%",
-  },
-  modalBtnKeep: {
-    // @ts-ignore
-    flex: 1,
-    backgroundColor: "#F1F5F9",
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-    borderRadius: 12,
-    paddingVertical: 10,
-    alignItems: "center",
-    marginRight: 6,
-  },
-  modalBtnKeepText: {
-    color: "#475569",
-    fontWeight: "700",
-    fontSize: 13,
-  },
-  modalBtnConfirm: {
-    // @ts-ignore
-    flex: 1,
-    backgroundColor: "#DC2626",
-    borderRadius: 12,
-    paddingVertical: 10,
-    alignItems: "center",
-    marginLeft: 6,
-  },
-  modalBtnConfirmText: {
-    color: "#FFFFFF",
-    fontWeight: "700",
-    fontSize: 13,
-  },
-});
+const createStyles = (colors: any, modoActual: "light" | "dark") =>
+  StyleSheet.create({
+    container: {
+      flexGrow: 1,
+      backgroundColor: "#F0F9FF",
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 32,
+      alignItems: "center",
+    },
+    branding: {
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    logoBox: {
+      width: 52,
+      height: 52,
+      backgroundColor: "#0088FF",
+      borderRadius: 16,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 6,
+      elevation: 3,
+    },
+    brandTitle: {
+      fontSize: 20,
+      fontWeight: "800",
+      color: "#0F172A",
+    },
+    brandSubtitle: {
+      fontSize: 10,
+      fontWeight: "700",
+      color: colors.primary,
+      letterSpacing: 0.8,
+    },
+    card: {
+      width: "100%",
+      maxWidth: 430,
+      backgroundColor: colors.surface,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 20,
+      elevation: 2,
+    },
+    welcomeText: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: colors.text,
+    },
+    sectionSubtitle: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginBottom: 14,
+      fontWeight: "500",
+    },
+    errorBox: {
+      backgroundColor: "#FEE2E2",
+      borderWidth: 1,
+      borderColor: "#FCA5A5",
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 14,
+    },
+    errorText: {
+      color: "#991B1B",
+      fontSize: 12,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    successBox: {
+      backgroundColor: "#DCFCE7",
+      borderWidth: 1,
+      borderColor: "#86EFAC",
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 14,
+    },
+    successText: {
+      color: "#166534",
+      fontSize: 12,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    appointmentCard: {
+      backgroundColor: modoActual === "dark" ? colors.input : "#E0F2FE",
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 18,
+      padding: 16,
+      marginBottom: 14,
+    },
+    dateHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 4,
+    },
+    calendarIcon: {
+      fontSize: 16,
+      marginRight: 6,
+    },
+    dateText: {
+      fontSize: 15,
+      fontWeight: "800",
+      color: colors.text,
+    },
+    hourText: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: colors.textSecondary,
+      marginLeft: 22,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginVertical: 8,
+    },
+    label: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontWeight: "600",
+      marginTop: 4,
+    },
+    valueText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.text,
+      marginBottom: 6,
+    },
+    statusPending: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: "#D97706",
+      marginBottom: 12,
+    },
+    statusConfirmed: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.primary,
+      marginBottom: 12,
+    },
+    statusCompleted: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.success,
+      marginBottom: 12,
+    },
+    statusDefault: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.textSecondary,
+      marginBottom: 12,
+    },
+    actionRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      marginTop: 4,
+    },
+    cancelBtn: {
+      backgroundColor: modoActual === "dark" ? "#4A1F23" : "#FEE2E2",
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      borderRadius: 10,
+      marginRight: 8,
+      borderWidth: 1,
+      borderColor: modoActual === "dark" ? "#7F1D1D" : "#FCA5A5",
+    },
+    cancelBtnText: {
+      color: modoActual === "dark" ? "#FCA5A5" : "#DC2626",
+      fontSize: 11,
+      fontWeight: "700",
+    },
+    editBtn: {
+      backgroundColor: modoActual === "dark" ? "#153A5B" : "#E0F2FE",
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: modoActual === "dark" ? "#2563EB" : "#7DD3FC",
+    },
+    editBtnText: {
+      color: modoActual === "dark" ? "#60A5FA" : "#0284C7",
+      fontSize: 11,
+      fontWeight: "700",
+    },
+    emptyBox: {
+      padding: 20,
+      alignItems: "center",
+    },
+    emptyText: {
+      color: colors.textSecondary,
+      fontSize: 13,
+    },
+    quickAccessLabel: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: colors.textSecondary,
+      marginTop: 6,
+      marginBottom: 8,
+    },
+    quickBtn: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 12,
+      paddingVertical: 10,
+      alignItems: "center",
+      marginBottom: 14,
+    },
+    quickBtnText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    createMainBtn: {
+      borderWidth: 1,
+      borderColor: colors.primary,
+      borderRadius: 16,
+      paddingVertical: 12,
+      alignItems: "center",
+      marginTop: 4,
+    },
+    createMainBtnText: {
+      fontSize: 14,
+      fontWeight: "800",
+      color: colors.primary,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(15, 23, 42, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 20,
+    },
+    modalCard: {
+      width: "100%",
+      maxWidth: 340,
+      backgroundColor: colors.surface,
+      borderRadius: 20,
+      padding: 22,
+      alignItems: "center",
+      elevation: 6,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    modalIcon: {
+      fontSize: 32,
+      marginBottom: 8,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "800",
+      color: colors.text,
+      marginBottom: 6,
+    },
+    modalText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      textAlign: "center",
+      marginBottom: 20,
+      lineHeight: 18,
+    },
+    modalActionRow: {
+      flexDirection: "row",
+      width: "100%",
+    },
+    modalBtnKeep: {
+      // @ts-ignore
+      flex: 1,
+      backgroundColor: colors.input,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 12,
+      paddingVertical: 10,
+      alignItems: "center",
+      marginRight: 6,
+    },
+    modalBtnKeepText: {
+      color: colors.text,
+      fontWeight: "700",
+      fontSize: 13,
+    },
+    modalBtnConfirm: {
+      // @ts-ignore
+      flex: 1,
+      backgroundColor: "#DC2626",
+      borderRadius: 12,
+      paddingVertical: 10,
+      alignItems: "center",
+      marginLeft: 6,
+    },
+    modalBtnConfirmText: {
+      color: "#FFFFFF",
+      fontWeight: "700",
+      fontSize: 13,
+    },
+  });
