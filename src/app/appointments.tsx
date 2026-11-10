@@ -448,7 +448,7 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
   StyleSheet.create({
     container: {
       flexGrow: 1,
-      backgroundColor: "#F0F9FF",
+      backgroundColor: colors.background,
       paddingHorizontal: 16,
       paddingTop: 12,
       paddingBottom: 32,
@@ -461,7 +461,7 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
     logoBox: {
       width: 52,
       height: 52,
-      backgroundColor: "#0088FF",
+      backgroundColor: colors.primary,
       borderRadius: 16,
       justifyContent: "center",
       alignItems: "center",
@@ -471,7 +471,7 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
     brandTitle: {
       fontSize: 20,
       fontWeight: "800",
-      color: "#0F172A",
+      color: colors.text,
     },
     brandSubtitle: {
       fontSize: 10,
@@ -600,33 +600,55 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
     actionRow: {
       flexDirection: "row",
       justifyContent: "flex-end",
-      marginTop: 4,
+      marginTop: 10,
+      gap: 10,
     },
+
     cancelBtn: {
-      backgroundColor: modoActual === "dark" ? "#4A1F23" : "#FEE2E2",
-      paddingHorizontal: 12,
-      paddingVertical: 7,
-      borderRadius: 10,
-      marginRight: 8,
+      backgroundColor:
+        modoActual === "dark"
+          ? "#5A2A30"
+          : "#FEE2E2",
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+      borderRadius: 12,
       borderWidth: 1,
-      borderColor: modoActual === "dark" ? "#7F1D1D" : "#FCA5A5",
+      borderColor:
+        modoActual === "dark"
+          ? "#E57373"
+          : "#FCA5A5",
     },
+
     cancelBtnText: {
-      color: modoActual === "dark" ? "#FCA5A5" : "#DC2626",
-      fontSize: 11,
+      color:
+        modoActual === "dark"
+          ? "#FFD6D6"
+          : "#DC2626",
+      fontSize: 13,
       fontWeight: "700",
     },
+
     editBtn: {
-      backgroundColor: modoActual === "dark" ? "#153A5B" : "#E0F2FE",
-      paddingHorizontal: 12,
-      paddingVertical: 7,
-      borderRadius: 10,
+      backgroundColor:
+        modoActual === "dark"
+          ? "#234B6F"
+          : "#E0F2FE",
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+      borderRadius: 12,
       borderWidth: 1,
-      borderColor: modoActual === "dark" ? "#2563EB" : "#7DD3FC",
+      borderColor:
+        modoActual === "dark"
+          ? "#60A5FA"
+          : "#7DD3FC",
     },
+
     editBtnText: {
-      color: modoActual === "dark" ? "#60A5FA" : "#0284C7",
-      fontSize: 11,
+      color:
+        modoActual === "dark"
+          ? "#D6ECFF"
+          : "#0284C7",
+      fontSize: 13,
       fontWeight: "700",
     },
     emptyBox: {
@@ -646,25 +668,44 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
     },
     quickBtn: {
       borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 12,
-      paddingVertical: 10,
+      borderColor:
+        modoActual === "dark"
+          ? "#3B82F6"
+          : colors.border,
+      borderRadius: 16,
+      paddingVertical: 14,
       alignItems: "center",
+      justifyContent: "center",
       marginBottom: 14,
+      backgroundColor:
+        modoActual === "dark"
+          ? "#1E293B"
+          : colors.surface,
     },
+
     quickBtnText: {
-      fontSize: 12,
-      fontWeight: "700",
-      color: colors.text,
+      fontSize: 14,
+      fontWeight: "800",
+      color:
+        modoActual === "dark"
+          ? "#FFFFFF"
+          : colors.text,
     },
+
     createMainBtn: {
       borderWidth: 1,
       borderColor: colors.primary,
       borderRadius: 16,
-      paddingVertical: 12,
+      paddingVertical: 14,
       alignItems: "center",
+      justifyContent: "center",
       marginTop: 4,
+      backgroundColor:
+        modoActual === "dark"
+          ? "#1E293B"
+          : colors.surface,
     },
+
     createMainBtnText: {
       fontSize: 14,
       fontWeight: "800",

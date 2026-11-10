@@ -278,13 +278,16 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
       right: 0,
       bottom: 0,
       left: 0,
-      backgroundColor: "rgba(20, 35, 30, 0.38)",
+      backgroundColor:
+    modoActual === "dark"
+      ? "rgba(0,0,0,0.65)"
+      : "rgba(20,35,30,0.38)",
     },
 
     drawer: {
       width: "84%",
       height: "100%",
-      backgroundColor: colors.white,
+      backgroundColor: colors.surface,
       paddingTop: 60,
       paddingHorizontal: 22,
     },
@@ -334,7 +337,7 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
       width: 38,
       height: 38,
       borderRadius: 12,
-      backgroundColor: colors.background,
+      backgroundColor: colors.input,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -354,7 +357,10 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
       width: 42,
       height: 42,
       borderRadius: 13,
-      backgroundColor: colors.primaryLight,
+      backgroundColor:
+      modoActual === "dark"
+        ? colors.input
+        : colors.primaryLight,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -384,7 +390,10 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
       width: 42,
       height: 42,
       borderRadius: 13,
-      backgroundColor: "#FDECEA",
+      backgroundColor:
+      modoActual === "dark"
+        ? "#3A2020"
+        : "#FDECEA",
       alignItems: "center",
       justifyContent: "center",
     },
@@ -422,10 +431,12 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
     confirmBox: {
       width: "100%",
       maxWidth: 320,
-      backgroundColor: colors.white,
+      backgroundColor: colors.surface,
       borderRadius: 20,
       padding: 24,
       alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
       shadowColor: "#000",
       shadowOffset: {
         width: 0,
@@ -440,7 +451,10 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
       width: 60,
       height: 60,
       borderRadius: 20,
-      backgroundColor: "#FDECEA",
+      backgroundColor:
+      modoActual === "dark"
+        ? "#3A2020"
+        : "#FDECEA",
       justifyContent: "center",
       alignItems: "center",
       marginBottom: 16,
@@ -477,7 +491,7 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
     },
 
     cancelBtn: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.input,
       borderWidth: 1,
       borderColor: colors.border,
     },

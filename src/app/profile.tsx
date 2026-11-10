@@ -208,15 +208,20 @@ export default function ProfileScreen() {
         {/* BARRA SUPERIOR */}
         <View style={styles.topBar}>
           <Pressable
-            onPress={volverInicio}
             style={styles.backButton}
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/home");
+              }
+            }}
           >
             <Ionicons
               name="arrow-back"
-              size={21}
+              size={24}
               color={colors.text}
             />
-            <Text style={styles.backText}>Volver</Text>
           </Pressable>
 
           <Text style={styles.pageTitle}>

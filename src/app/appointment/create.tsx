@@ -21,6 +21,7 @@ import {
 
 import Header from "../../components/home/Header";
 import { useAuth } from "../../context/AuthContext";
+import { useAppTheme } from "../../context/ThemeContext";
 import { guardarDocumento } from "../../services/firestore";
 
 interface Tratamiento {
@@ -55,6 +56,9 @@ export default function CreateAppointmentScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const { usuario, obtenerIdUsuario } = useAuth();
+
+  const { colors, modoActual } = useAppTheme();
+  const styles = createStyles(colors, modoActual);
 
   const hoy = new Date();
   const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(
@@ -402,7 +406,7 @@ export default function CreateAppointmentScreen() {
   if (cargandoDatos) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0088FF" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Cargando información...</Text>
       </View>
     );
@@ -659,10 +663,14 @@ export default function CreateAppointmentScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: any,
+  modoActual: "light" | "dark"
+) =>
+  StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#F0F9FF",
+    backgroundColor: colors.background,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 32,
@@ -670,13 +678,13 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: "#F0F9FF",
+    backgroundColor: colors.background,
     justifyContent: "center",
     alignItems: "center",
     gap: 12,
   },
   loadingText: {
-    color: "#475569",
+    color: colors.textSecondary,
     fontSize: 14,
     fontWeight: "600",
   },
@@ -687,7 +695,7 @@ const styles = StyleSheet.create({
   logoBox: {
     width: 56,
     height: 56,
-    backgroundColor: "#0088FF",
+    backgroundColor: colors.primary,
     borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
@@ -697,42 +705,42 @@ const styles = StyleSheet.create({
   brandTitle: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#0F172A",
+    color: colors.text,
   },
   brandSubtitle: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#0088FF",
+    color: colors.primary,
     letterSpacing: 0.8,
     marginTop: 2,
   },
   card: {
     width: "100%",
     maxWidth: 430,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: colors.border,
     padding: 22,
     elevation: 3,
   },
   title: {
     fontSize: 26,
     fontWeight: "800",
-    color: "#0F172A",
+    color: colors.text,
     textAlign: "center",
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#475569",
+    color: colors.textSecondary,
     textAlign: "center",
     marginBottom: 20,
   },
   label: {
     fontSize: 13,
-    color: "#334155",
+    color: colors.text,
     fontWeight: "700",
     marginBottom: 8,
   },
@@ -740,25 +748,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor:
+    modoActual === "dark"
+      ? colors.input
+      : "#F8FAFC",
     borderWidth: 1,
-    borderColor: "#94A3B8",
+    borderColor: colors.border,
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
   selectorTextPlaceholder: {
     fontSize: 14,
-    color: "#64748B",
+    color: colors.textSecondary,
   },
   selectorTextActive: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0F172A",
+    color: colors.text,
   },
   selectorIcon: {
     fontSize: 14,
-    color: "#64748B",
+    color: colors.textSecondary,
   },
   modalOverlay: {
     flex: 1,
@@ -770,10 +781,12 @@ const styles = StyleSheet.create({
   modalContent: {
     width: "100%",
     maxWidth: 360,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 20,
     elevation: 5,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   modalHeader: {
     flexDirection: "row",
@@ -784,12 +797,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0F172A",
+    color: colors.text,
   },
   closeModalText: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#64748B",
+    color: colors.textSecondary,
   },
   calendarHeader: {
     flexDirection: "row",
@@ -799,14 +812,14 @@ const styles = StyleSheet.create({
   },
   calendarNavBtn: {
     fontSize: 16,
-    color: "#0088FF",
+    color: colors.primary,
     fontWeight: "bold",
     paddingHorizontal: 8,
   },
   calendarMonthText: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#0F172A",
+    color: colors.text,
   },
   weekDaysRow: {
     flexDirection: "row",
@@ -816,7 +829,7 @@ const styles = StyleSheet.create({
   weekDayText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#64748B",
+    color: colors.textSecondary,
     width: 32,
     textAlign: "center",
   },
@@ -838,7 +851,7 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
   dayCellSelected: {
-    backgroundColor: "#0088FF",
+    backgroundColor: colors.primary,
   },
   dayCellDisabled: {
     opacity: 0.3,
@@ -846,39 +859,45 @@ const styles = StyleSheet.create({
   dayCellText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#1E293B",
+    color: colors.text,
   },
   dayCellTextSelected: {
-    color: "#FFFFFF",
+    color: colors.white,
     fontWeight: "bold",
   },
   dayCellTextDisabled: {
-    color: "#94A3B8",
+    color: colors.textSecondary,
   },
   treatmentOption: {
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: colors.border,
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,
-    backgroundColor: "#F8FAFC",
+    backgroundColor:
+    modoActual === "dark"
+      ? colors.input
+      : "#F8FAFC",
   },
   treatmentOptionSelected: {
-    borderColor: "#0088FF",
-    backgroundColor: "#E0F2FE",
+    borderColor: colors.primary,
+    backgroundColor:
+    modoActual === "dark"
+      ? "#153A5B"
+      : "#E0F2FE",
   },
   treatmentName: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0F172A",
+    color: colors.text,
   },
   treatmentNameSelected: {
-    color: "#0369A1",
+    color: colors.primary,
   },
   treatmentDetail: {
     marginTop: 2,
     fontSize: 11,
-    color: "#64748B",
+    color: colors.textSecondary,
   },
   optionsContainer: {
     flexDirection: "row",
@@ -888,25 +907,28 @@ const styles = StyleSheet.create({
   optionButton: {
     borderWidth: 1,
     borderColor: "#CBD5E1",
-    backgroundColor: "#FFFFFF",
+    backgroundColor:
+    modoActual === "dark"
+      ? colors.input
+      : colors.surface,
     borderRadius: 12,
     paddingHorizontal: 13,
     paddingVertical: 9,
   },
   optionButtonSelected: {
-    backgroundColor: "#0088FF",
-    borderColor: "#0088FF",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   optionText: {
-    color: "#334155",
+    color: colors.text,
     fontSize: 13,
     fontWeight: "700",
   },
   optionTextSelected: {
-    color: "#FFFFFF",
+    color: colors.white,
   },
   emptyText: {
-    color: "#64748B",
+    color: colors.textSecondary,
     fontSize: 13,
     marginBottom: 8,
   },
@@ -939,7 +961,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   button: {
-    backgroundColor: "#0088FF",
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     borderRadius: 16,
     alignItems: "center",
@@ -949,7 +971,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: "#FFFFFF",
+    color: colors.white,
     fontWeight: "800",
     fontSize: 15,
     letterSpacing: 0.5,

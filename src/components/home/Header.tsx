@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import { useAppTheme } from "../../context/ThemeContext";
 import SideMenu from "./SideMenu";
 
 type HeaderProps = {
@@ -10,7 +11,18 @@ type HeaderProps = {
 
 export default function Header({ showBack = true }: HeaderProps) {
   const router = useRouter();
+
+  const { colors, modoActual } = useAppTheme();
+  const styles = createStyles(colors, modoActual);
   const [menuVisible, setMenuVisible] = useState(false);
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/home");
+    }
+  };
 
   return (
     <>
@@ -37,7 +49,7 @@ export default function Header({ showBack = true }: HeaderProps) {
             style={styles.menuBtn}
             onPress={() => setMenuVisible(true)}
           >
-            <Ionicons name="menu" size={24} color="#0F172A" />
+            <Ionicons name="menu" size={24} color={modoActual === "dark" ? "#E2E8F0" : "#0F172A"} />
           </Pressable>
         </View>
       </View>
@@ -48,7 +60,11 @@ export default function Header({ showBack = true }: HeaderProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: any,
+  modoActual: "light" | "dark"
+) =>
+  StyleSheet.create({
   headerContainer: {
     width: "100%",
     maxWidth: 430,
@@ -62,10 +78,10 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: "#0088FF",
+    backgroundColor: colors.primary,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#0088FF",
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -80,10 +96,10 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: "#0088FF",
+    backgroundColor: colors.primary,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#0088FF",
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -93,14 +109,14 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: modoActual === "dark" ? "#1E293B" : colors.surface,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: modoActual === "dark" ? "#334155" : colors.border,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.12,
     shadowRadius: 3,
     elevation: 2,
   },

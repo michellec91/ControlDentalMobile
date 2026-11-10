@@ -4,16 +4,17 @@ import { useCallback, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import Header from "../components/home/Header";
 import { useAuth } from "../context/AuthContext";
+import { useAppTheme } from "../context/ThemeContext";
 import { obtenerDocumentos } from "../services/firestore";
 
 interface CitaFirebase {
@@ -31,6 +32,9 @@ export default function HistoryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { usuario } = useAuth();
+
+  const { colors, modoActual } = useAppTheme();
+  const styles = createStyles(colors, modoActual);
 
   const [citas, setCitas] = useState<CitaFirebase[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -254,7 +258,7 @@ export default function HistoryScreen() {
         {cargando ? (
           <ActivityIndicator
             size="large"
-            color="#0088FF"
+            color={colors.primary}
             style={{ marginVertical: 20 }}
           />
         ) : citas.length > 0 ? (
@@ -305,10 +309,14 @@ export default function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: any,
+  modoActual: "light" | "dark"
+) =>
+  StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#F0F9FF",
+    backgroundColor: colors.background,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 32,
@@ -321,7 +329,7 @@ const styles = StyleSheet.create({
   logoBox: {
     width: 52,
     height: 52,
-    backgroundColor: "#0088FF",
+    backgroundColor: colors.primary,
     borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
@@ -331,32 +339,32 @@ const styles = StyleSheet.create({
   brandTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#0F172A",
+    color: colors.text,
   },
   brandSubtitle: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#0088FF",
+    color: colors.primary,
     letterSpacing: 0.8,
   },
   card: {
     width: "100%",
     maxWidth: 430,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: colors.border,
     padding: 20,
     elevation: 2,
   },
   welcomeText: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0F172A",
+    color: colors.text,
   },
   sectionSubtitle: {
     fontSize: 13,
-    color: "#475569",
+    color: colors.textSecondary,
     marginBottom: 14,
     fontWeight: "500",
   },
@@ -369,23 +377,26 @@ const styles = StyleSheet.create({
   filterBtn: {
     flex: 1,
     paddingVertical: 8,
-    backgroundColor: "#F1F5F9",
+    backgroundColor:
+    modoActual === "dark"
+      ? colors.input
+      : "#F1F5F9",
     borderRadius: 10,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: colors.border,
   },
   filterBtnActive: {
-    backgroundColor: "#0088FF",
-    borderColor: "#0088FF",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   filterBtnText: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#475569",
+    color: colors.textSecondary,
   },
   filterBtnTextActive: {
-    color: "#FFFFFF",
+    color: colors.white,
   },
   errorBox: {
     backgroundColor: "#FEE2E2",
@@ -416,9 +427,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   appointmentCard: {
-    backgroundColor: "#E0F2FE",
+    backgroundColor:
+    modoActual === "dark"
+      ? colors.input
+      : "#E0F2FE",
     borderWidth: 1,
-    borderColor: "#BAE6FD",
+    borderColor: colors.border,
     borderRadius: 18,
     padding: 16,
     marginBottom: 14,
@@ -463,13 +477,13 @@ const styles = StyleSheet.create({
   statusConfirmed: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#2563EB",
+    color: colors.primary,
     marginBottom: 4,
   },
   statusCompleted: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#16A34A",
+    color: colors.success,
     marginBottom: 4,
   },
   statusCancelled: {
@@ -489,7 +503,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   emptyText: {
-    color: "#64748B",
+    color: colors.textSecondary,
     fontSize: 13,
   },
 });

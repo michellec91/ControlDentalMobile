@@ -3,11 +3,11 @@ import { router } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  ActivityIndicator,
+  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -20,7 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import HomeHeader from "../components/home/HomeHeader";
 import SideMenu from "../components/home/SideMenu";
-import { colors } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 import { obtenerTratamientos } from "../services/api";
 
 interface Tratamiento {
@@ -34,6 +34,9 @@ interface Tratamiento {
 }
 
 export default function TreatmentsScreen() {
+  const { colors, modoActual } = useAppTheme();
+  const styles = createStyles(colors, modoActual);
+  
   const keyboardFields = useRef<(TextInput | null)[]>([]);
 
   const [search, setSearch] = useState("");
@@ -531,7 +534,10 @@ export default function TreatmentsScreen() {
   );
 }
 
-const styles =
+const createStyles = (
+  colors: any,
+  modoActual: "light" | "dark"
+) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -633,10 +639,14 @@ const styles =
       alignItems:
         "center",
       backgroundColor:
-        "#FDECEA",
+    modoActual === "dark"
+      ? "#3A2020"
+      : "#FDECEA",
       borderWidth: 1,
       borderColor:
-        "#F5C6CB",
+    modoActual === "dark"
+      ? "#7F1D1D"
+      : "#F5C6CB",
       borderRadius: 14,
       padding: 14,
       gap: 8,
@@ -645,7 +655,9 @@ const styles =
     errorText: {
       flex: 1,
       color:
-        "#D9534F",
+    modoActual === "dark"
+      ? "#FCA5A5"
+      : "#D9534F",
       fontSize: 13,
       fontWeight:
         "600",
@@ -689,7 +701,9 @@ const styles =
       height: 46,
       borderRadius: 15,
       backgroundColor:
-        colors.primaryLight,
+    modoActual === "dark"
+      ? colors.input
+      : colors.primaryLight,
       alignItems:
         "center",
       justifyContent:

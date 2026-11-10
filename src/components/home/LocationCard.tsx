@@ -13,11 +13,20 @@ export default function LocationCard() {
 
       <View style={styles.card}>
         {/* MAPA */}
-        <Image
-          source={require("../../../assets/images/clinic-map.png")}
-          style={styles.map}
-          resizeMode="cover"
-        />
+        <View style={styles.mapContainer}>
+          <Image
+            source={require("../../../assets/images/clinic-map.png")}
+            style={styles.map}
+            resizeMode="cover"
+          />
+
+          {modoActual === "dark" && (
+            <View
+              pointerEvents="none"
+              style={styles.mapDarkOverlay}
+            />
+          )}
+        </View>
 
         {/* INFORMACIÓN */}
         <View style={styles.info}>
@@ -87,9 +96,20 @@ const createStyles = (
     borderColor: colors.border,
   },
 
-  map: {
+  mapContainer: {
     width: "100%",
     height: 190,
+    position: "relative",
+  },
+
+  map: {
+    width: "100%",
+    height: "100%",
+  },
+
+  mapDarkOverlay: {
+  ...StyleSheet.absoluteFill,
+  backgroundColor: "rgba(10, 20, 35, 0.42)",
   },
 
   info: {
