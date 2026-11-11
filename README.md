@@ -16,6 +16,18 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npx expo start
    ```
 
+3. .env a usar
+
+   EXPO_PUBLIC_API_URL=http://localhost:3001
+ 
+   EXPO_PUBLIC_FIREBASE_API_KEY=AIzaSyBo0HeqUY3qs3eOBrZAl5JZ1_PyDK_NfU8
+   EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=controldental-dps.firebaseapp.com
+   EXPO_PUBLIC_FIREBASE_PROJECT_ID=controldental-dps
+   EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=controldental-dps.firebasestorage.app
+   EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=968230408088
+   EXPO_PUBLIC_FIREBASE_APP_ID=1:968230408088:web:30de2a0a26443368bba5ed
+ 
+
 In the output, you'll find options to open the app in a
 
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)
