@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 const MAP_URL =
   "https://www.openstreetmap.org/export/embed.html" +
@@ -10,6 +10,9 @@ const MAP_URL =
   "&marker=13.71281%2C-89.23223";
 
 export default function LocationCard() {
+  const { colors, modoActual } = useAppTheme();
+  const styles = createStyles(colors, modoActual);
+
   return (
     <>
       <Text style={styles.sectionTitle}>Encontranos</Text>
@@ -19,7 +22,17 @@ export default function LocationCard() {
           title="Mapa interactivo de Clínica Dental Sonrisas"
           src={MAP_URL}
           loading="lazy"
-          style={{ width: "100%", height: 210, border: 0, display: "block" }}
+          style={{
+            width: "100%",
+            height: 210,
+            border: 0,
+            display: "block",
+            backgroundColor: colors.surface,
+            filter:
+              modoActual === "dark"
+                ? "invert(90%) hue-rotate(180deg)"
+                : "none",
+          }}
         />
 
         <View style={styles.info}>
@@ -60,7 +73,10 @@ export default function LocationCard() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: ReturnType<typeof useAppTheme>["colors"],
+  modoActual: "light" | "dark"
+) => StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
@@ -86,7 +102,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: modoActual === "dark" ? colors.input : colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },

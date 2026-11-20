@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
 
-import { colors } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
 
 // Ubicación aproximada para demostración
 const MAP_URL =
@@ -12,7 +12,27 @@ const MAP_URL =
   "&layer=mapnik" +
   "&marker=13.71281%2C-89.23223";
 
+function mapHtml(dark: boolean) {
+  const filter = dark ? "invert(90%) hue-rotate(180deg)" : "none";
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+    iframe { display: block; width: 100%; height: 100%; border: 0; filter: ${filter}; }
+  </style>
+</head>
+<body>
+  <iframe src="${MAP_URL}" title="Mapa interactivo de Clínica Dental Sonrisas"></iframe>
+</body>
+</html>`;
+}
+
 export default function LocationCard() {
+  const { colors, modoActual } = useAppTheme();
+  const styles = createStyles(colors, modoActual);
   return (
     <>
       <Text style={styles.sectionTitle}>Encontranos</Text>
@@ -20,7 +40,9 @@ export default function LocationCard() {
       <View style={styles.card}>
         {/* Mapa interactivo OpenStreetMap */}
         <WebView
-          source={{ uri: MAP_URL }}
+          key={modoActual}
+          source={{ html: mapHtml(modoActual === "dark"), baseUrl: "https://www.openstreetmap.org" }}
+          originWhitelist={["*"]}
           style={styles.map}
           javaScriptEnabled
           startInLoadingState
@@ -69,7 +91,10 @@ export default function LocationCard() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: ReturnType<typeof useAppTheme>["colors"],
+  modoActual: "light" | "dark"
+) => StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
@@ -104,7 +129,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: modoActual === "dark" ? colors.input : colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
