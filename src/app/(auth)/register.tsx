@@ -50,6 +50,16 @@ export default function RegisterScreen() {
   ] = useState("");
 
   const [
+    mostrarPassword,
+    setMostrarPassword
+  ] = useState(false);
+
+  const [
+    mostrarConfirmPassword,
+    setMostrarConfirmPassword
+  ] = useState(false);
+
+  const [
     telefono,
     setTelefono,
   ] = useState("");
@@ -209,484 +219,518 @@ export default function RegisterScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-      <ScrollView
-        showsVerticalScrollIndicator={
-          false
-        }
-        contentContainerStyle={
-          styles.content
-        }
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-      >
-        <Pressable
-          style={styles.brandHeader}
-          accessibilityRole="button"
-          accessibilityLabel="Volver a iniciar sesión"
-          onPress={() => router.replace("/(auth)/login")}
-        >
-          <View style={styles.brandBackIcon}>
-            <Ionicons name="arrow-back" size={24} color={colors.white} />
-          </View>
-          <View style={styles.brandHeaderText}>
-            <Text style={styles.brandName}>Control Dental</Text>
-            <Text style={styles.clinicName}>CLÍNICA DENTAL SONRISAS</Text>
-          </View>
-        </Pressable>
-
-        <Image
-          source={require(
-            "../../../assets/images/treatments.jpg"
-          )}
-          style={
-            styles.heroImage
+        <ScrollView
+          showsVerticalScrollIndicator={
+            false
           }
-          resizeMode="cover"
-        />
-
-        <View
-          style={
-            styles.header
+          contentContainerStyle={
+            styles.content
           }
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
-          <Text
-            style={
-              styles.eyebrow
-            }
-          >
-            REGISTRO
-          </Text>
-
-          <Text
-            style={
-              styles.title
-            }
-          >
-            Creá tu cuenta
-          </Text>
-
-          <Text
-            style={
-              styles.subtitle
-            }
-          >
-            Completá tus datos
-            para empezar a
-            solicitar tus citas
-            dentales.
-          </Text>
-        </View>
-
-        {error ? (
-          <View
-            style={
-              styles.errorContainer
-            }
-          >
-            <Ionicons
-              name="alert-circle-outline"
-              size={18}
-              color="#D9534F"
-            />
-
-            <Text
-              style={
-                styles.errorText
-              }
-            >
-              {error}
-            </Text>
-          </View>
-        ) : null}
-
-        {exito ? (
-          <View
-            style={
-              styles.successContainer
-            }
-          >
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={18}
-              color="#2E7D32"
-            />
-
-            <Text
-              style={
-                styles.successText
-              }
-            >
-              {exito}
-            </Text>
-          </View>
-        ) : null}
-
-        <View
-          style={
-            styles.formContainer
-          }
-        >
-          {/* NOMBRE */}
-          <View
-            style={
-              styles.inputGroup
-            }
-          >
-            <Text
-              style={
-                styles.label
-              }
-            >
-              Nombre
-            </Text>
-
-            <View
-              style={
-                styles.searchContainer
-              }
-            >
-              <Ionicons
-                name="person-outline"
-                size={20}
-                color={
-                  colors.textSecondary
-                }
-              />
-
-              <TextInput
-                value={nombre}
-                onChangeText={
-                  setNombre
-                }
-                placeholder="Ingresá tu nombre"
-                placeholderTextColor={
-                  colors.textSecondary
-                }
-                style={
-                  styles.searchInput
-                }
-              ref={(input) => { keyboardFields.current[0] = input; }}
-              returnKeyType="next"
-              blurOnSubmit={false}
-              onSubmitEditing={() => keyboardFields.current[1]?.focus()}
-              />
-            </View>
-          </View>
-
-          {/* APELLIDO */}
-          <View
-            style={
-              styles.inputGroup
-            }
-          >
-            <Text
-              style={
-                styles.label
-              }
-            >
-              Apellido
-            </Text>
-
-            <View
-              style={
-                styles.searchContainer
-              }
-            >
-              <Ionicons
-                name="person-outline"
-                size={20}
-                color={
-                  colors.textSecondary
-                }
-              />
-
-              <TextInput
-                value={
-                  apellido
-                }
-                onChangeText={
-                  setApellido
-                }
-                placeholder="Ingresá tu apellido"
-                placeholderTextColor={
-                  colors.textSecondary
-                }
-                style={
-                  styles.searchInput
-                }
-              ref={(input) => { keyboardFields.current[1] = input; }}
-              returnKeyType="next"
-              blurOnSubmit={false}
-              onSubmitEditing={() => keyboardFields.current[2]?.focus()}
-              />
-            </View>
-          </View>
-
-          {/* CORREO */}
-          <View
-            style={
-              styles.inputGroup
-            }
-          >
-            <Text
-              style={
-                styles.label
-              }
-            >
-              Correo electrónico
-            </Text>
-
-            <View
-              style={
-                styles.searchContainer
-              }
-            >
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color={
-                  colors.textSecondary
-                }
-              />
-
-              <TextInput
-                value={correo}
-                onChangeText={
-                  setCorreo
-                }
-                placeholder="Ingresá tu correo"
-                placeholderTextColor={
-                  colors.textSecondary
-                }
-                style={
-                  styles.searchInput
-                }
-                autoCapitalize="none"
-                autoCorrect={
-                  false
-                }
-                keyboardType="email-address"
-              ref={(input) => { keyboardFields.current[2] = input; }}
-              returnKeyType="next"
-              blurOnSubmit={false}
-              onSubmitEditing={() => keyboardFields.current[3]?.focus()}
-              />
-            </View>
-          </View>
-
-          {/* CONTRASEÑA */}
-          <View
-            style={
-              styles.inputGroup
-            }
-          >
-            <Text
-              style={
-                styles.label
-              }
-            >
-              Contraseña
-            </Text>
-
-            <View
-              style={
-                styles.searchContainer
-              }
-            >
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color={
-                  colors.textSecondary
-                }
-              />
-
-              <TextInput
-                value={
-                  password
-                }
-                onChangeText={
-                  setPassword
-                }
-                placeholder="Ingresá tu contraseña"
-                placeholderTextColor={
-                  colors.textSecondary
-                }
-                style={
-                  styles.searchInput
-                }
-                secureTextEntry
-              ref={(input) => { keyboardFields.current[3] = input; }}
-              returnKeyType="next"
-              blurOnSubmit={false}
-              onSubmitEditing={() => keyboardFields.current[4]?.focus()}
-              />
-            </View>
-          </View>
-
-          {/* REPETIR CONTRASEÑA */}
-          <View
-            style={
-              styles.inputGroup
-            }
-          >
-            <Text
-              style={
-                styles.label
-              }
-            >
-              Repetir contraseña
-            </Text>
-
-            <View
-              style={
-                styles.searchContainer
-              }
-            >
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color={
-                  colors.textSecondary
-                }
-              />
-
-              <TextInput
-                value={
-                  confirmPassword
-                }
-                onChangeText={
-                  setConfirmPassword
-                }
-                placeholder="Repetí tu contraseña"
-                placeholderTextColor={
-                  colors.textSecondary
-                }
-                style={
-                  styles.searchInput
-                }
-                secureTextEntry
-              ref={(input) => { keyboardFields.current[4] = input; }}
-              returnKeyType="next"
-              blurOnSubmit={false}
-              onSubmitEditing={() => keyboardFields.current[5]?.focus()}
-              />
-            </View>
-          </View>
-
-          {/* TELÉFONO */}
-          <View
-            style={
-              styles.inputGroup
-            }
-          >
-            <Text
-              style={
-                styles.label
-              }
-            >
-              Teléfono
-            </Text>
-
-            <View
-              style={
-                styles.searchContainer
-              }
-            >
-              <Ionicons
-                name="call-outline"
-                size={20}
-                color={
-                  colors.textSecondary
-                }
-              />
-
-              <TextInput
-                value={
-                  telefono
-                }
-                onChangeText={
-                  setTelefono
-                }
-                placeholder="Ingresá tu teléfono"
-                placeholderTextColor={
-                  colors.textSecondary
-                }
-                style={
-                  styles.searchInput
-                }
-                keyboardType="phone-pad"
-              ref={(input) => { keyboardFields.current[5] = input; }}
-              returnKeyType="done"
-              onSubmitEditing={Keyboard.dismiss}
-              />
-            </View>
-          </View>
-
-          {/* CREAR CUENTA */}
           <Pressable
-            style={[
-              styles.button,
-              cargando &&
-                styles.buttonDisabled,
-            ]}
-            onPress={
-              handleRegister
-            }
-            disabled={
-              cargando
-            }
+            style={styles.brandHeader}
+            accessibilityRole="button"
+            accessibilityLabel="Volver a iniciar sesión"
+            onPress={() => router.replace("/(auth)/login")}
           >
-            <Text
-              style={
-                styles.buttonText
-              }
-            >
-              {cargando
-                ? "Registrando..."
-                : "Crear cuenta"}
-            </Text>
-
-            {!cargando && (
-              <Ionicons
-                name="checkmark"
-                size={18}
-                color={
-                  colors.white
-                }
-              />
-            )}
+            <View style={styles.brandBackIcon}>
+              <Ionicons name="arrow-back" size={24} color={colors.white} />
+            </View>
+            <View style={styles.brandHeaderText}>
+              <Text style={styles.brandName}>Control Dental</Text>
+              <Text style={styles.clinicName}>CLÍNICA DENTAL SONRISAS</Text>
+            </View>
           </Pressable>
 
-          {/* LOGIN */}
-          <Pressable
+          <Image
+            source={require(
+              "../../../assets/images/treatments.jpg"
+            )}
             style={
-              styles.linkContainer
+              styles.heroImage
             }
-            onPress={() =>
-              router.push(
-                "/(auth)/login"
-              )
+            resizeMode="cover"
+          />
+
+          <View
+            style={
+              styles.header
             }
           >
             <Text
               style={
-                styles.linkText
+                styles.eyebrow
               }
             >
-              ¿Ya tenés
-              cuenta?{" "}
+              REGISTRO
+            </Text>
+
+            <Text
+              style={
+                styles.title
+              }
+            >
+              Creá tu cuenta
+            </Text>
+
+            <Text
+              style={
+                styles.subtitle
+              }
+            >
+              Completá tus datos
+              para empezar a
+              solicitar tus citas
+              dentales.
+            </Text>
+          </View>
+
+          {error ? (
+            <View
+              style={
+                styles.errorContainer
+              }
+            >
+              <Ionicons
+                name="alert-circle-outline"
+                size={18}
+                color="#D9534F"
+              />
+
               <Text
                 style={
-                  styles.linkBold
+                  styles.errorText
                 }
               >
-                Iniciá sesión
+                {error}
               </Text>
-            </Text>
-          </Pressable>
-        </View>
-      </ScrollView>
+            </View>
+          ) : null}
+
+          {exito ? (
+            <View
+              style={
+                styles.successContainer
+              }
+            >
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={18}
+                color="#2E7D32"
+              />
+
+              <Text
+                style={
+                  styles.successText
+                }
+              >
+                {exito}
+              </Text>
+            </View>
+          ) : null}
+
+          <View
+            style={
+              styles.formContainer
+            }
+          >
+            {/* NOMBRE */}
+            <View
+              style={
+                styles.inputGroup
+              }
+            >
+              <Text
+                style={
+                  styles.label
+                }
+              >
+                Nombre
+              </Text>
+
+              <View
+                style={
+                  styles.searchContainer
+                }
+              >
+                <Ionicons
+                  name="person-outline"
+                  size={20}
+                  color={
+                    colors.textSecondary
+                  }
+                />
+
+                <TextInput
+                  value={nombre}
+                  onChangeText={
+                    setNombre
+                  }
+                  placeholder="Ingresá tu nombre"
+                  placeholderTextColor={
+                    colors.textSecondary
+                  }
+                  style={
+                    styles.searchInput
+                  }
+                  ref={(input) => { keyboardFields.current[0] = input; }}
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => keyboardFields.current[1]?.focus()}
+                />
+              </View>
+            </View>
+
+            {/* APELLIDO */}
+            <View
+              style={
+                styles.inputGroup
+              }
+            >
+              <Text
+                style={
+                  styles.label
+                }
+              >
+                Apellido
+              </Text>
+
+              <View
+                style={
+                  styles.searchContainer
+                }
+              >
+                <Ionicons
+                  name="person-outline"
+                  size={20}
+                  color={
+                    colors.textSecondary
+                  }
+                />
+
+                <TextInput
+                  value={
+                    apellido
+                  }
+                  onChangeText={
+                    setApellido
+                  }
+                  placeholder="Ingresá tu apellido"
+                  placeholderTextColor={
+                    colors.textSecondary
+                  }
+                  style={
+                    styles.searchInput
+                  }
+                  ref={(input) => { keyboardFields.current[1] = input; }}
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => keyboardFields.current[2]?.focus()}
+                />
+              </View>
+            </View>
+
+            {/* CORREO */}
+            <View
+              style={
+                styles.inputGroup
+              }
+            >
+              <Text
+                style={
+                  styles.label
+                }
+              >
+                Correo electrónico
+              </Text>
+
+              <View
+                style={
+                  styles.searchContainer
+                }
+              >
+                <Ionicons
+                  name="mail-outline"
+                  size={20}
+                  color={
+                    colors.textSecondary
+                  }
+                />
+
+                <TextInput
+                  value={correo}
+                  onChangeText={
+                    setCorreo
+                  }
+                  placeholder="Ingresá tu correo"
+                  placeholderTextColor={
+                    colors.textSecondary
+                  }
+                  style={
+                    styles.searchInput
+                  }
+                  autoCapitalize="none"
+                  autoCorrect={
+                    false
+                  }
+                  keyboardType="email-address"
+                  ref={(input) => { keyboardFields.current[2] = input; }}
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => keyboardFields.current[3]?.focus()}
+                />
+              </View>
+            </View>
+
+            {/* CONTRASEÑA */}
+            <View
+              style={
+                styles.inputGroup
+              }
+            >
+              <Text
+                style={
+                  styles.label
+                }
+              >
+                Contraseña
+              </Text>
+
+              <View
+                style={
+                  styles.searchContainer
+                }
+              >
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={20}
+                  color={
+                    colors.textSecondary
+                  }
+                />
+
+                <TextInput
+                  value={
+                    password
+                  }
+                  onChangeText={
+                    setPassword
+                  }
+                  placeholder="Ingresá tu contraseña"
+                  placeholderTextColor={
+                    colors.textSecondary
+                  }
+                  style={
+                    styles.searchInput
+                  }
+                  secureTextEntry={!mostrarPassword}
+                  ref={(input) => { keyboardFields.current[3] = input; }}
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => keyboardFields.current[4]?.focus()}
+                />
+                <Pressable
+                  style={styles.eyeButton}
+                  onPress={() => setMostrarPassword(!mostrarPassword)}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                  }
+                >
+                  <Ionicons
+                    name={mostrarPassword ? "eye-off-outline" : "eye-outline"}
+                    size={22}
+                    color={colors.textSecondary}
+                  />
+                </Pressable>
+              </View>
+            </View>
+
+            {/* REPETIR CONTRASEÑA */}
+            <View
+              style={
+                styles.inputGroup
+              }
+            >
+              <Text
+                style={
+                  styles.label
+                }
+              >
+                Repetir contraseña
+              </Text>
+
+              <View
+                style={
+                  styles.searchContainer
+                }
+              >
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={20}
+                  color={
+                    colors.textSecondary
+                  }
+                />
+
+                <TextInput
+                  value={
+                    confirmPassword
+                  }
+                  onChangeText={
+                    setConfirmPassword
+                  }
+                  placeholder="Repetí tu contraseña"
+                  placeholderTextColor={
+                    colors.textSecondary
+                  }
+                  style={
+                    styles.searchInput
+                  }
+                  secureTextEntry={!mostrarConfirmPassword}
+                  ref={(input) => { keyboardFields.current[4] = input; }}
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => keyboardFields.current[5]?.focus()}
+                />
+                <Pressable
+                  style={styles.eyeButton}
+                  onPress={() => setMostrarConfirmPassword(!mostrarConfirmPassword)}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    mostrarConfirmPassword
+                      ? "Ocultar contraseña"
+                      : "Mostrar contraseña"
+                  }
+                >
+                  <Ionicons
+                    name={
+                      mostrarConfirmPassword
+                        ? "eye-off-outline"
+                        : "eye-outline"
+                    }
+                    size={22}
+                    color={colors.textSecondary}
+                  />
+                </Pressable>
+              </View>
+            </View>
+
+            {/* TELÉFONO */}
+            <View
+              style={
+                styles.inputGroup
+              }
+            >
+              <Text
+                style={
+                  styles.label
+                }
+              >
+                Teléfono
+              </Text>
+
+              <View
+                style={
+                  styles.searchContainer
+                }
+              >
+                <Ionicons
+                  name="call-outline"
+                  size={20}
+                  color={
+                    colors.textSecondary
+                  }
+                />
+
+                <TextInput
+                  value={
+                    telefono
+                  }
+                  onChangeText={
+                    setTelefono
+                  }
+                  placeholder="Ingresá tu teléfono"
+                  placeholderTextColor={
+                    colors.textSecondary
+                  }
+                  style={
+                    styles.searchInput
+                  }
+                  keyboardType="phone-pad"
+                  ref={(input) => { keyboardFields.current[5] = input; }}
+                  returnKeyType="done"
+                  onSubmitEditing={Keyboard.dismiss}
+                />
+              </View>
+            </View>
+
+            {/* CREAR CUENTA */}
+            <Pressable
+              style={[
+                styles.button,
+                cargando &&
+                styles.buttonDisabled,
+              ]}
+              onPress={
+                handleRegister
+              }
+              disabled={
+                cargando
+              }
+            >
+              <Text
+                style={
+                  styles.buttonText
+                }
+              >
+                {cargando
+                  ? "Registrando..."
+                  : "Crear cuenta"}
+              </Text>
+
+              {!cargando && (
+                <Ionicons
+                  name="checkmark"
+                  size={18}
+                  color={
+                    colors.white
+                  }
+                />
+              )}
+            </Pressable>
+
+            {/* LOGIN */}
+            <Pressable
+              style={
+                styles.linkContainer
+              }
+              onPress={() =>
+                router.push(
+                  "/(auth)/login"
+                )
+              }
+            >
+              <Text
+                style={
+                  styles.linkText
+                }
+              >
+                ¿Ya tenés
+                cuenta?{" "}
+                <Text
+                  style={
+                    styles.linkBold
+                  }
+                >
+                  Iniciá sesión
+                </Text>
+              </Text>
+            </Pressable>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -919,5 +963,11 @@ const styles =
       fontWeight:
         "600",
       flex: 1,
+    },
+
+    eyeButton: {
+      padding: 8,
+      justifyContent: "center",
+      alignItems: "center",
     },
   });

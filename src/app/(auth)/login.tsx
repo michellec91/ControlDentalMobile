@@ -31,6 +31,9 @@ export default function LoginScreen() {
   const [password, setPassword] =
     useState("");
 
+  const [mostrarPassword, setMostrarPassword] =
+    useState(false);
+
   const [error, setError] =
     useState("");
 
@@ -344,11 +347,26 @@ export default function LoginScreen() {
                   style={
                     styles.searchInput
                   }
-                  secureTextEntry
+                  secureTextEntry={!mostrarPassword}
                   ref={(input) => { keyboardFields.current[1] = input; }}
                   returnKeyType="done"
                   onSubmitEditing={Keyboard.dismiss}
                 />
+
+                <Pressable
+                  style={styles.eyeButton}
+                  onPress={() => setMostrarPassword(!mostrarPassword)}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                  }
+                >
+                  <Ionicons
+                    name={mostrarPassword ? "eye-off-outline" : "eye-outline"}
+                    size={22}
+                    color={colors.textSecondary}
+                  />
+                </Pressable>
               </View>
             </View>
 
@@ -652,5 +670,11 @@ const styles =
       color: "#202124",
       fontSize: 15,
       fontWeight: "600",
+    },
+
+    eyeButton: {
+      padding: 8,
+      justifyContent: "center",
+      alignItems: "center",
     },
   });
