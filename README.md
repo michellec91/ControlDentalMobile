@@ -1,68 +1,73 @@
-# Welcome to your Expo app 👋
+# Control Dental | Aplicación móvil
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Control Dental** es una aplicación de **Clínica Dental Sonrisas** que permite a los pacientes consultar tratamientos, gestionar citas y acceder a información de la clínica.
 
-## Get started
+**Proyecto académico:** DPS941 · Universidad Don Bosco · Ciclo II, 2026 · Grupo C.
 
-1. Install dependencies
+**Panel administrativo:** [Control Dental Web](https://github.com/michellec91/controldental-dps).
+
+## Funcionalidades
+
+- Registro, inicio y cierre de sesión con **Firebase Authentication** (correo y contraseña).
+- Consulta de tratamientos y gestión de citas: solicitudes, cambios, cancelaciones e historial.
+- Perfil de paciente y datos asociados a su cuenta.
+- Modo **claro, oscuro y automático**, con preferencias almacenadas en **Firestore**.
+- Información de la clínica y mapa interactivo, adaptado al tema en Android y Expo Web.
+
+## Tecnologías
+
+**React Native · Expo SDK 57 · TypeScript · Expo Router · Firebase Authentication · Cloud Firestore · OpenStreetMap**.
+
+La aplicación también utiliza la **API REST (Node.js y Express) y MySQL** del [repositorio web](https://github.com/michellec91/controldental-dps) para determinadas operaciones. Firestore y MySQL cumplen funciones complementarias en esta versión.
+
+## Mockups de Figma
+
+Diseños de la Etapa 1: acceso, registro, tratamientos, perfil y administración de citas. Los prototipos son una referencia visual y pueden diferir de la implementación final.
+
+[![Vista previa de los mockups móviles](docs/mockups/vista-previa-movil.png)](docs/mockups/mockups-movil.pdf)
+
+**[Ver los mockups completos en PDF](docs/mockups/mockups-movil.pdf)**
+
+## Ejecución local
+
+1. Clonar el repositorio e instalar dependencias:
 
    ```bash
+   git clone https://github.com/michellec91/ControlDentalMobile.git
+   cd ControlDentalMobile
    npm install
    ```
 
-2. Start the app
+2. Iniciar **MySQL en XAMPP** y la API desde el [repositorio web](https://github.com/michellec91/controldental-dps), con su base de datos configurada:
 
    ```bash
-   npx expo start
+   npm run api
    ```
 
-3. .env a usar
+3. Crear un archivo `.env` en la raíz de **ControlDentalMobile**. Configurar la URL de la API y las variables públicas de Firebase del proyecto:
 
-   EXPO_PUBLIC_API_URL=http://localhost:3001
- 
-   EXPO_PUBLIC_FIREBASE_API_KEY=AIzaSyBo0HeqUY3qs3eOBrZAl5JZ1_PyDK_NfU8
-   EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=controldental-dps.firebaseapp.com
-   EXPO_PUBLIC_FIREBASE_PROJECT_ID=controldental-dps
-   EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=controldental-dps.firebasestorage.app
-   EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=968230408088
-   EXPO_PUBLIC_FIREBASE_APP_ID=1:968230408088:web:30de2a0a26443368bba5ed
- 
+   ```env
+   EXPO_PUBLIC_API_URL=http://IP_LOCAL_DE_TU_PC:3001
+   EXPO_PUBLIC_FIREBASE_API_KEY=tu_api_key_publica
+   EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=tu-proyecto.firebaseapp.com
+   EXPO_PUBLIC_FIREBASE_PROJECT_ID=tu-proyecto
+   EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=tu-bucket
+   EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=tu_sender_id
+   EXPO_PUBLIC_FIREBASE_APP_ID=tu_app_id
+   ```
 
-In the output, you'll find options to open the app in a
+   Para **Expo Web** en la misma PC puede utilizarse `http://localhost:3001`; para **Expo Go en Android**, usar la IPv4 local de la computadora y conectar ambos dispositivos a la misma red. No incluir contraseñas ni claves privadas en el repositorio.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+4. Iniciar la aplicación móvil:
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   ```bash
+   npx expo start --clear
+   ```
 
-## Get a fresh project
+   Escanear el QR con **Expo Go compatible con SDK 57** o presionar `w` para Expo Web. En PowerShell pueden usarse `npm.cmd` y `npx.cmd`.
 
-When you're ready, run:
+## Colaboración y licencia
 
-```bash
-npm run reset-project
-```
+El equipo trabajó con **ramas individuales**, integración en `main` e historial de commits en GitHub. Las aportaciones pueden revisarse en [Commits](https://github.com/michellec91/ControlDentalMobile/commits/main).
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+El repositorio incorpora **Creative Commons Atribución 4.0 Internacional (CC BY 4.0)** en [LICENSE.md](LICENSE.md). Se conserva también el archivo `LICENSE` preexistente de Expo. Los componentes y recursos de terceros mantienen sus licencias originales.
