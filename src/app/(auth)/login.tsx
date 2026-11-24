@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useRef, useState } from "react";
+import { useRef, useState, type ComponentRef } from "react";
 
 import {
   Keyboard,
@@ -21,7 +21,7 @@ import { colors } from "../../constants/theme";
 import { mensajeErrorFirebase, useAuth } from "../../context/AuthContext";
 
 export default function LoginScreen() {
-  const keyboardFields = useRef<(TextInput | null)[]>([]);
+  const keyboardFields = useRef<(ComponentRef<typeof TextInput> | null)[]>([]);
 
   const { login, loginConGoogle } = useAuth();
 
@@ -108,13 +108,6 @@ export default function LoginScreen() {
   const handleGoogleLogin = async () => {
     setError("");
     setExito("");
-
-    if (Platform.OS !== "web") {
-      setError(
-        "El inicio de sesión con Google está disponible por ahora únicamente en la versión web."
-      );
-      return;
-    }
 
     try {
       setCargando(true);

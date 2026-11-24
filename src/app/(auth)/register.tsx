@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useRef, useState } from "react";
+import { useRef, useState, type ComponentRef } from "react";
 
 import {
   Keyboard,
@@ -21,7 +21,7 @@ import { colors } from "../../constants/theme";
 import { mensajeErrorFirebase, useAuth } from "../../context/AuthContext";
 
 export default function RegisterScreen() {
-  const keyboardFields = useRef<(TextInput | null)[]>([]);
+  const keyboardFields = useRef<(ComponentRef<typeof TextInput> | null)[]>([]);
 
   const { registrar } = useAuth();
   const [

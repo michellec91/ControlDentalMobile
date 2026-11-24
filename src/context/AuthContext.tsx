@@ -6,6 +6,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithCredential,
   signOut,
   updateProfile,
   type User as FirebaseUser,
@@ -358,23 +359,73 @@ export function AuthProvider({
   // LOGIN CON GOOGLE
   // --------------------------------------------------
   const loginConGoogle = async () => {
-    if (Platform.OS !== "web") {
+    // WEB: conservar el inicio de sesión existente.
+    if (Platform.OS === "web") {
+      const proveedor = new GoogleAuthProvider();
+
+      proveedor.setCustomParameters({
+        prompt: "select_account",
+      });
+
+      await signInWithPopup(
+        firebaseAuth,
+        proveedor,
+        browserPopupRedirectResolver
+      );
+
+      return;
+    }
+
+    // Por ahora implementamos la versión nativa para Android.
+    if (Platform.OS !== "android") {
       throw new Error(
-        "Google Sign-In está disponible por ahora solo en la versión web."
+        "Google Sign-In todavía no está configurado para iOS."
       );
     }
 
-    const proveedor = new GoogleAuthProvider();
+    const webClientId =
+      process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 
-    proveedor.setCustomParameters({
-      prompt: "select_account",
+    if (!webClientId) {
+      throw new Error(
+        "Falta configurar EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID."
+      );
+    }
+
+    // Cargar el módulo nativo únicamente en Android.
+    const {
+      GoogleSignin,
+      isSuccessResponse,
+    } = require("@react-native-google-signin/google-signin") as typeof import("@react-native-google-signin/google-signin");
+
+    GoogleSignin.configure({
+      webClientId,
     });
 
-    await signInWithPopup(
-      firebaseAuth,
-      proveedor,
-      browserPopupRedirectResolver
-    );
+    await GoogleSignin.hasPlayServices({
+      showPlayServicesUpdateDialog: true,
+    });
+
+    const respuesta = await GoogleSignin.signIn();
+
+    if (!isSuccessResponse(respuesta)) {
+      throw new Error(
+        "Se canceló el inicio de sesión con Google."
+      );
+    }
+
+    const idToken = respuesta.data.idToken;
+
+    if (!idToken) {
+      throw new Error(
+        "Google no devolvió un token de identificación."
+      );
+    }
+
+    // Convertir el token de Google en una sesión Firebase.
+    const credencial = GoogleAuthProvider.credential(idToken);
+
+    await signInWithCredential(firebaseAuth, credencial);
   };
 
   // --------------------------------------------------

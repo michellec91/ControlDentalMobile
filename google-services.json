@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "968230408088",
+    "project_id": "controldental-dps",
+    "storage_bucket": "controldental-dps.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:968230408088:android:5235bdc52f43a649bba5ed",
+        "android_client_info": {
+          "package_name": "com.rs252221steam.controldentalmobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "968230408088-lkvkumouvtc3gfalt44cib4duus9j0h2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rs252221steam.controldentalmobile",
+            "certificate_hash": "cec2444222ab0e520315d2ff9a32f001da0b8152"
+          }
+        },
+        {
+          "client_id": "968230408088-v9g14skd2q7khcbf7us2f48vbk9fj3v2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACXV-z5-Esk_sgXrRlAcR6t5DcQM_okpc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "968230408088-v9g14skd2q7khcbf7us2f48vbk9fj3v2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
