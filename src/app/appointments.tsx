@@ -78,6 +78,47 @@ export default function AppointmentsScreen() {
       const data = await obtenerCitasPorUsuario(idUsuario);
       const lista = Array.isArray(data) ? data : [];
 
+      if (usuario?.uid) {
+        const estadosFinales = [
+          "confirmada",
+          "completada",
+          "cancelada",
+          "rechazada",
+        ];
+
+        const citasParaSincronizar = lista.filter((c: Cita) =>
+          estadosFinales.includes(c.estado?.toLowerCase().trim() || ""),
+        );
+
+        for (const citaSync of citasParaSincronizar) {
+          const estadoNormalizado =
+            citaSync.estado?.toLowerCase().trim() === "rechazada"
+              ? "cancelada"
+              : citaSync.estado?.toLowerCase().trim();
+
+          const citasRef = collection(db, "citas");
+          const fechaLimpia = citaSync.fecha.split("T")[0];
+          const q = query(
+            citasRef,
+            where("uid", "==", usuario.uid),
+            where("fecha", "==", fechaLimpia),
+          );
+          const snap = await getDocs(q);
+
+          for (const docSnap of snap.docs) {
+            const dataDoc = docSnap.data();
+            if (
+              dataDoc.hora?.slice(0, 5) === citaSync.hora?.slice(0, 5) &&
+              dataDoc.estado?.toLowerCase().trim() !== estadoNormalizado
+            ) {
+              await updateDoc(doc(db, "citas", docSnap.id), {
+                estado: estadoNormalizado,
+              });
+            }
+          }
+        }
+      }
+
       // No mostrar citas canceladas en "Mis Citas activas".
       const citasVisibles = lista.filter(
         (cita: Cita) => cita.estado?.toLowerCase().trim() !== "cancelada",
@@ -605,49 +646,31 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
     },
 
     cancelBtn: {
-      backgroundColor:
-        modoActual === "dark"
-          ? "#5A2A30"
-          : "#FEE2E2",
+      backgroundColor: modoActual === "dark" ? "#5A2A30" : "#FEE2E2",
       paddingHorizontal: 15,
       paddingVertical: 10,
       borderRadius: 12,
       borderWidth: 1,
-      borderColor:
-        modoActual === "dark"
-          ? "#E57373"
-          : "#FCA5A5",
+      borderColor: modoActual === "dark" ? "#E57373" : "#FCA5A5",
     },
 
     cancelBtnText: {
-      color:
-        modoActual === "dark"
-          ? "#FFD6D6"
-          : "#DC2626",
+      color: modoActual === "dark" ? "#FFD6D6" : "#DC2626",
       fontSize: 13,
       fontWeight: "700",
     },
 
     editBtn: {
-      backgroundColor:
-        modoActual === "dark"
-          ? "#234B6F"
-          : "#E0F2FE",
+      backgroundColor: modoActual === "dark" ? "#234B6F" : "#E0F2FE",
       paddingHorizontal: 15,
       paddingVertical: 10,
       borderRadius: 12,
       borderWidth: 1,
-      borderColor:
-        modoActual === "dark"
-          ? "#60A5FA"
-          : "#7DD3FC",
+      borderColor: modoActual === "dark" ? "#60A5FA" : "#7DD3FC",
     },
 
     editBtnText: {
-      color:
-        modoActual === "dark"
-          ? "#D6ECFF"
-          : "#0284C7",
+      color: modoActual === "dark" ? "#D6ECFF" : "#0284C7",
       fontSize: 13,
       fontWeight: "700",
     },
@@ -668,28 +691,19 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
     },
     quickBtn: {
       borderWidth: 1,
-      borderColor:
-        modoActual === "dark"
-          ? "#3B82F6"
-          : colors.border,
+      borderColor: modoActual === "dark" ? "#3B82F6" : colors.border,
       borderRadius: 16,
       paddingVertical: 14,
       alignItems: "center",
       justifyContent: "center",
       marginBottom: 14,
-      backgroundColor:
-        modoActual === "dark"
-          ? "#1E293B"
-          : colors.surface,
+      backgroundColor: modoActual === "dark" ? "#1E293B" : colors.surface,
     },
 
     quickBtnText: {
       fontSize: 14,
       fontWeight: "800",
-      color:
-        modoActual === "dark"
-          ? "#FFFFFF"
-          : colors.text,
+      color: modoActual === "dark" ? "#FFFFFF" : colors.text,
     },
 
     createMainBtn: {
@@ -700,10 +714,7 @@ const createStyles = (colors: any, modoActual: "light" | "dark") =>
       alignItems: "center",
       justifyContent: "center",
       marginTop: 4,
-      backgroundColor:
-        modoActual === "dark"
-          ? "#1E293B"
-          : colors.surface,
+      backgroundColor: modoActual === "dark" ? "#1E293B" : colors.surface,
     },
 
     createMainBtnText: {
